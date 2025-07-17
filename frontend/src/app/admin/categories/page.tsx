@@ -1,12 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-
-type Category = {
-    _id: string
-    name: string
-    description?: string
-    image?: string
-}
+import { Category } from '@/types'
 
 export default function AdminCategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([])
@@ -30,7 +24,7 @@ export default function AdminCategoriesPage() {
         const res = await fetch('http://localhost:5000/api/categories', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description, image }),
+            body: JSON.stringify({ name, description, image })
         })
         const data = await res.json()
         if (res.ok) {
