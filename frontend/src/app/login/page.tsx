@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function LoginPage() {
     const router = useRouter()
@@ -55,10 +56,20 @@ export default function LoginPage() {
                     className="input"
                     required
                 />
+
                 <button type="submit" className="btn w-full">
                     Login
                 </button>
-                {message && <p className="mt-2 text-sm text-red-500">{message}</p>}
+
+                {message && (
+                    <p className="mt-2 text-sm text-red-500">{message}</p>
+                )}
+
+                <div className="mt-2 text-right">
+                    <Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">
+                        Forgot password?
+                    </Link>
+                </div>
             </form>
         </div>
     )

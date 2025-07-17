@@ -28,7 +28,7 @@ export const registerUser = async (req: Request, res: Response) => {
             firstName,
             lastName,
             verificationToken,
-            verificationTokenExpires: Date.now() + 30 * 60 * 1000 // 30 minutes
+            verificationTokenExpires: Date.now() + 30 * 60 * 1000 // 30 mins
         })
 
         const verificationUrl = `http://localhost:3000/verify?token=${verificationToken}`
@@ -38,10 +38,10 @@ export const registerUser = async (req: Request, res: Response) => {
             `<p>Click the link to verify your email:</p><a href="${verificationUrl}">${verificationUrl}</a>`
         )
 
-        res.status(201).json({ message: 'Registration successful. Please verify your email.' })
+        return res.status(201).json({ message: 'Registration successful. Please verify your email.' })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ message: 'Internal server error' })
+        return res.status(500).json({ message: 'Internal server error' })
     }
 }
 
@@ -58,17 +58,19 @@ export const verifyEmail = async (req: Request, res: Response) => {
             verificationTokenExpires: { $gt: Date.now() }
         })
 
-        if (!user) return res.status(400).json({ message: 'Invalid or expired token' })
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token' })
+        }
 
         user.emailVerified = true
         user.verificationToken = undefined
         user.verificationTokenExpires = undefined
         await user.save()
 
-        res.json({ message: 'Email verified successfully' })
+        return res.status(200).json({ message: 'Email verified successfully' })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ message: 'Internal server error' })
+        return res.status(500).json({ message: 'Internal server error' })
     }
 }
 
@@ -78,17 +80,21 @@ export const loginUser = async (req: Request, res: Response) => {
         const { email, password } = req.body
         const user = await User.findOne({ email })
 
-        if (!user) return res.status(401).json({ message: 'Invalid credentials' })
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials' })
+        }
 
         const isMatch = await bcrypt.compare(password, user.password)
-        if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' })
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials' })
+        }
 
         if (!user.emailVerified) {
             return res.status(403).json({ message: 'Please verify your email first.' })
         }
 
         const token = generateToken(user._id.toString())
-        res.json({
+        return res.status(200).json({
             user: {
                 id: user._id,
                 email: user.email,
@@ -98,7 +104,7 @@ export const loginUser = async (req: Request, res: Response) => {
         })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ message: 'Internal server error' })
+        return res.status(500).json({ message: 'Internal server error' })
     }
 }
 
@@ -107,7 +113,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
     try {
         const { email } = req.body
         const user = await User.findOne({ email })
-        if (!user) return res.status(404).json({ message: 'No user with that email' })
+
+        if (!user) {
+            return res.status(404).json({ message: 'No user with that email' })
+        }
 
         const token = crypto.randomBytes(32).toString('hex')
         user.resetPasswordToken = token
@@ -121,10 +130,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
             `<p>Click the link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`
         )
 
-        res.json({ message: 'Password reset email sent' })
+        return res.status(200).json({ message: 'Password reset email sent' })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ message: 'Internal server error' })
+        return res.status(500).json({ message: 'Internal server error' })
     }
 }
 
@@ -143,7 +152,9 @@ export const resetPassword = async (req: Request, res: Response) => {
             resetPasswordExpires: { $gt: new Date() }
         })
 
-        if (!user) return res.status(400).json({ message: 'Invalid or expired token' })
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token' })
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10)
         user.password = hashedPassword
@@ -151,9 +162,9 @@ export const resetPassword = async (req: Request, res: Response) => {
         user.resetPasswordExpires = undefined
         await user.save()
 
-        res.json({ message: 'Password reset successful' })
+        return res.status(200).json({ message: 'Password reset successful' })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ message: 'Internal server error' })
+        return res.status(500).json({ message: 'Internal server error' })
     }
 }
