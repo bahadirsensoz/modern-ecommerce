@@ -9,7 +9,11 @@ const userSchema = new mongoose.Schema(
         firstName: { type: String },
         lastName: { type: String },
         phone: { type: String },
-        role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+        role: {
+            type: String,
+            enum: ['customer', 'admin'],
+            default: 'customer',
+        },
         addresses: [
             {
                 street: String,
@@ -18,8 +22,12 @@ const userSchema = new mongoose.Schema(
                 postalCode: String,
             },
         ],
-        favorites: [String], // category ids or product ids
+        favorites: [String],
         emailVerified: { type: Boolean, default: false },
+        verificationToken: String,
+        verificationTokenExpires: Date,
+        resetPasswordToken: String,
+        resetPasswordExpires: Date,
     },
     { timestamps: true }
 )
