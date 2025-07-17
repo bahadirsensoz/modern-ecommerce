@@ -28,7 +28,7 @@ export const registerUser = async (req: Request, res: Response) => {
             firstName,
             lastName,
             verificationToken,
-            verificationTokenExpires: Date.now() + 30 * 60 * 1000 // 30 mins
+            verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
         })
 
         const verificationUrl = `http://localhost:3000/verify?token=${verificationToken}`
