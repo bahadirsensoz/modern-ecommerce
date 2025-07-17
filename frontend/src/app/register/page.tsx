@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const schema = z.object({
     email: z.string().email(),
@@ -22,6 +23,7 @@ export default function RegisterPage() {
 
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState('')
+    const router = useRouter()
 
     const onSubmit = async (data: FormData) => {
         setLoading(true)
@@ -34,9 +36,17 @@ export default function RegisterPage() {
             })
             const json = await res.json()
             if (!res.ok) throw new Error(json.message || 'Error')
-            setMessage('✅ Registered successfully!')
+
+            setMessage('Registered successfully!')
+
+            localStorage.setItem('token', json.token)
+
+            const lastPage = localStorage.getItem('lastPage') || '/'
+            localStorage.removeItem('lastPage')
+            router.push(lastPage)
+
         } catch (err: any) {
-            setMessage(`❌ ${err.message}`)
+            setMessage(`${err.message}`)
         } finally {
             setLoading(false)
         }

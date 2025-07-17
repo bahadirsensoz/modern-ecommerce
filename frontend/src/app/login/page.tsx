@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const schema = z.object({
     email: z.string().email(),
@@ -20,6 +21,7 @@ export default function LoginPage() {
 
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState('')
+    const router = useRouter() // ✅ move this OUTSIDE onSubmit
 
     const onSubmit = async (data: FormData) => {
         setLoading(true)
@@ -34,6 +36,9 @@ export default function LoginPage() {
             if (!res.ok) throw new Error(json.message || 'Login failed')
             localStorage.setItem('token', json.token)
             setMessage('✅ Login successful!')
+            const lastPage = localStorage.getItem('lastPage') || '/'
+            localStorage.removeItem('lastPage')
+            router.push(lastPage) // ✅ works now
         } catch (err: any) {
             setMessage(`❌ ${err.message}`)
         } finally {
