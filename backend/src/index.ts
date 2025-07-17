@@ -3,6 +3,7 @@ import cors from 'cors'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import authRoutes from './routes/auth'
+import categoryRoutes from './routes/category'
 
 dotenv.config()
 
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 5000
 app.use(cors())
 app.use(express.json())
 app.use('/api/auth', authRoutes)
+app.use('/api/categories', categoryRoutes)
 
 app.get('/', (req, res) => {
     res.send('Backend is running')
