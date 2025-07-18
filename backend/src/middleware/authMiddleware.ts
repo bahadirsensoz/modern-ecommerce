@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { Request, Response, NextFunction } from 'express'
 
 export const protect = (req: any, res: any, next: any) => {
     const authHeader = req.headers.authorization
@@ -15,3 +16,5 @@ export const protect = (req: any, res: any, next: any) => {
         res.status(401).json({ message: 'Token invalid' })
     }
 }
+
+

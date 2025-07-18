@@ -13,9 +13,6 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-console.log('SMTP_EMAIL:', process.env.SMTP_EMAIL)
-console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? 'loaded' : 'not loaded')
-
 export const sendEmail = async (to: string, subject: string, html: string) => {
   await transporter.sendMail({
     from: `"E-Commerce Support" <${process.env.SMTP_EMAIL}>`,
