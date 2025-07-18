@@ -16,11 +16,13 @@ const userSchema = new mongoose.Schema(
         },
         addresses: [
             {
+                label: String,
                 street: String,
                 city: String,
                 country: String,
                 postalCode: String,
-            },
+                isDefault: { type: Boolean, default: false },
+            }
         ],
         favorites: [String],
         emailVerified: { type: Boolean, default: false },
