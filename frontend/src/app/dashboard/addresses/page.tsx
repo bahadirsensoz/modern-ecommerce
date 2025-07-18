@@ -118,47 +118,108 @@ export default function AddressesPage() {
 
     return (
         <div className="p-6 max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Your Addresses</h1>
+            <button
+                onClick={() => router.push('/dashboard')}
+                className="mb-6 px-4 py-2 bg-black border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 flex items-center gap-2"
+            >
+                ← BACK TO DASHBOARD
+            </button>
+
+            <h1 className="text-5xl font-black mb-8 transform -rotate-2">MY ADDRESSES</h1>
 
             <button
-                className="btn mb-4"
+                className="w-full sm:w-auto mb-6 p-4 bg-green-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
                 onClick={() => {
                     setSelected(null)
                     setShowModal(true)
                 }}
             >
-                Add New Address
+                ➕ ADD NEW ADDRESS
             </button>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
                 {addresses.map((address, index) => (
-                    <div key={index} className="border p-4 rounded shadow-sm relative">
-                        <p className="font-semibold">{address.label}{address.isDefault && ' (Default)'}</p>
-                        <p>{address.street}, {address.city}, {address.country}, {address.postalCode}</p>
-                        <div className="mt-2 flex gap-2 flex-wrap">
-                            <button
-                                className="btn-sm border px-3 py-1 rounded"
-                                onClick={() => handleEdit(index)}
-                            >
-                                Edit
-                            </button>
-                            <button
-                                className="btn-sm bg-red-600 text-white px-3 py-1 rounded"
-                                onClick={() => handleDelete(index)}
-                            >
-                                Delete
-                            </button>
-                            {!address.isDefault && (
+                    <div
+                        key={index}
+                        className={`${address.isDefault ? 'bg-yellow-500' : 'bg-gray-400'
+                            } border-4 border-black p-6 relative hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200`}
+                    >
+                        <div className="flex flex-col sm:flex-row justify-between gap-4">
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <p className="font-black text-xl">
+                                        {address.label || 'ADDRESS'}
+                                    </p>
+                                    {address.isDefault && (
+                                        <span className="bg-blue-400 text-black px-2 py-1 text-sm border-2 border-black">
+                                            DEFAULT
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-black text-gray-700">STREET</p>
+                                        <p className="font-bold bg-white border-2 border-black p-2">
+                                            {address.street}
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <p className="text-sm font-black text-gray-700">CITY</p>
+                                            <p className="font-bold bg-white border-2 border-black p-2">
+                                                {address.city}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-black text-gray-700">POSTAL CODE</p>
+                                            <p className="font-bold bg-white border-2 border-black p-2">
+                                                {address.postalCode}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm font-black text-gray-700">COUNTRY</p>
+                                        <p className="font-bold bg-white border-2 border-black p-2">
+                                            {address.country}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
                                 <button
-                                    className="btn-sm bg-blue-600 text-white px-3 py-1 rounded"
-                                    onClick={() => handleMakeDefault(index)}
+                                    className="px-4 py-2 bg-yellow-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                                    onClick={() => handleEdit(index)}
                                 >
-                                    Make Default
+                                    ✏️ EDIT
                                 </button>
-                            )}
+                                <button
+                                    className="px-4 py-2 bg-red-500 text-white border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                                    onClick={() => handleDelete(index)}
+                                >
+                                    🗑️ DELETE
+                                </button>
+                                {!address.isDefault && (
+                                    <button
+                                        className="px-4 py-2 bg-blue-400 text-white border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                                        onClick={() => handleMakeDefault(index)}
+                                    >
+                                        ⭐ MAKE DEFAULT
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}
+
+                {addresses.length === 0 && (
+                    <div className="bg-pink-200 border-4 border-black p-6 font-black text-center">
+                        NO ADDRESSES SAVED YET
+                    </div>
+                )}
             </div>
 
             {showModal && (

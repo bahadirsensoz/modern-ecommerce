@@ -8,20 +8,20 @@ export default function AdminDashboardPage() {
 
     return (
         <AdminGuard>
-            <div className="p-6 max-w-xl mx-auto text-center">
-                <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-6 max-w-4xl mx-auto">
+                <h1 className="text-5xl font-black mb-8 transform -rotate-2">ADMIN PANEL</h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <button
                         onClick={() => router.push('/admin/products')}
-                        className="btn text-lg py-3"
+                        className="p-8 bg-blue-400 border-4 border-black text-white font-black text-2xl hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
                     >
-                        🛒 Manage Products
+                        🛒 MANAGE PRODUCTS
                     </button>
                     <button
                         onClick={() => router.push('/admin/categories')}
-                        className="btn text-lg py-3"
+                        className="p-8 bg-yellow-300 border-4 border-black font-black text-2xl hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
                     >
-                        📂 Manage Categories
+                        📂 MANAGE CATEGORIES
                     </button>
                 </div>
             </div>

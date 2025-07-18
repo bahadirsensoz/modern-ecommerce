@@ -13,6 +13,8 @@ interface User {
         city?: string
         country?: string
         postalCode?: string
+        isDefault?: boolean
+        label?: string
     }>
 }
 
@@ -51,38 +53,70 @@ export default function DashboardPage() {
 
     return (
         <div className="max-w-2xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">My Dashboard</h1>
+            <h1 className="text-5xl font-black mb-8 transform -rotate-2">MY DASHBOARD</h1>
 
-            <div className="mb-6">
-                <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Phone:</strong> {user.phone || '-'}</p>
+            <div className="bg-pink-200 border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <h2 className="text-2xl font-black mb-4 transform -rotate-1">PROFILE INFO</h2>
+                <div className="space-y-2 font-bold">
+                    <p className="bg-white border-2 border-black p-2">
+                        <span className="font-black">NAME:</span> {user.firstName} {user.lastName}
+                    </p>
+                    <p className="bg-white border-2 border-black p-2">
+                        <span className="font-black">EMAIL:</span> {user.email}
+                    </p>
+                    <p className="bg-white border-2 border-black p-2">
+                        <span className="font-black">PHONE:</span> {user.phone || '-'}
+                    </p>
+                </div>
             </div>
 
-            <div className="space-x-3 mb-6">
-                <button className="btn" onClick={() => router.push('/dashboard/edit-profile')}>
-                    Edit Profile
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <button
+                    onClick={() => router.push('/dashboard/edit-profile')}
+                    className="p-4 bg-yellow-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                >
+                    ✏️ EDIT PROFILE
                 </button>
-                <button className="btn" onClick={() => router.push('/dashboard/change-password')}>
-                    Change Password
+                <button
+                    onClick={() => router.push('/dashboard/change-password')}
+                    className="p-4 bg-blue-400 text-white border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                >
+                    🔒 CHANGE PASSWORD
                 </button>
-                <button className="btn" onClick={() => router.push('/dashboard/addresses')}>
-                    Manage Addresses
+                <button
+                    onClick={() => router.push('/dashboard/addresses')}
+                    className="p-4 bg-green-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                >
+                    📍 MANAGE ADDRESSES
                 </button>
             </div>
 
-            <h2 className="text-xl font-semibold mb-2">Addresses</h2>
-            {user.addresses && user.addresses.length > 0 ? (
-                <ul className="list-disc list-inside">
-                    {user.addresses.map((addr, idx) => (
-                        <li key={idx}>
-                            {addr.street}, {addr.city}, {addr.country} {addr.postalCode}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No addresses saved.</p>
-            )}
+            <div className="bg-yellow-200 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <h2 className="text-2xl font-black mb-4 transform -rotate-1">MY ADDRESSES</h2>
+                {user.addresses && user.addresses.length > 0 ? (
+                    <div className="space-y-3">
+                        {user.addresses.map((addr, idx) => (
+                            <div key={idx} className="bg-white border-2 border-black p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-black text-lg">
+                                        {addr.label || 'ADDRESS ' + (idx + 1)}
+                                    </span>
+                                    {addr.isDefault && (
+                                        <span className="bg-blue-400 text-white px-2 py-1 text-sm border-2 border-black font-bold">
+                                            DEFAULT
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="font-bold">
+                                    {addr.street}, {addr.city}, {addr.country} {addr.postalCode}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="font-bold bg-white border-2 border-black p-3">No addresses saved.</p>
+                )}
+            </div>
         </div>
     )
 }

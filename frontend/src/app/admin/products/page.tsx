@@ -78,48 +78,87 @@ export default function AdminProductsPage() {
 
     return (
         <AdminGuard>
-            <div className="p-6 max-w-3xl mx-auto">
-                <h1 className="text-2xl font-bold mb-4">Admin: Products</h1>
+            <div className="p-6 max-w-4xl mx-auto">
+                <h1 className="text-4xl font-black mb-8 transform -rotate-2">MANAGE PRODUCTS</h1>
 
-                <form onSubmit={handleSubmit} className="space-y-3 mb-6">
-                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className="input" required />
-                    <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" className="input" />
-                    <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price" type="number" className="input" required />
-                    <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL" className="input" />
-
-                    <select
-                        value={categoryId}
-                        onChange={(e) => setCategoryId(e.target.value)}
-                        className="input bg-white text-black border border-gray-300 px-3 py-2 rounded-md"
-                        required
-                    >
-                        <option value="">Select Category</option>
-                        {categories.map((cat) => (
-                            <option key={cat._id} value={cat._id}>
-                                {cat.name}
-                            </option>
-                        ))}
-                    </select>
-
-                    <button type="submit" className="btn w-full">Create Product</button>
-                    {message && <p className="text-sm">{message}</p>}
+                <form onSubmit={handleSubmit} className="bg-pink-200 p-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-8">
+                    <h2 className="text-2xl font-black mb-4">ADD NEW PRODUCT</h2>
+                    <div className="space-y-4">
+                        <input
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Name"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                            required
+                        />
+                        <input
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Description"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                        />
+                        <input
+                            value={price}
+                            onChange={(e) => setPrice(e.target.value)}
+                            placeholder="Price"
+                            type="number"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                            required
+                        />
+                        <input
+                            value={image}
+                            onChange={(e) => setImage(e.target.value)}
+                            placeholder="Image URL"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                        />
+                        <select
+                            value={categoryId}
+                            onChange={(e) => setCategoryId(e.target.value)}
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-white"
+                            required
+                        >
+                            <option value="">Select Category</option>
+                            {categories.map((cat) => (
+                                <option key={cat._id} value={cat._id}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            type="submit"
+                            className="w-full p-3 bg-blue-400 text-white font-black border-4 border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                        >
+                            CREATE PRODUCT
+                        </button>
+                        {message && <p className="font-bold text-center">{message}</p>}
+                    </div>
                 </form>
 
-                <ul className="space-y-2">
+                <div className="grid gap-4">
                     {products.map((product) => (
-                        <li key={product._id} className="border p-3 flex justify-between items-center">
+                        <div
+                            key={product._id}
+                            className="bg-white p-4 border-4 border-black flex justify-between items-center hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                        >
                             <div>
-                                <p className="font-semibold">{product.name}</p>
-                                <p className="text-sm">
-                                    ₺{product.price} — {getCategoryName(product.category, categories)}
+                                <p className="font-black text-xl">{product.name}</p>
+                                <p className="font-bold">
+                                    <span className="bg-yellow-300 px-2">₺{product.price}</span>
+                                    {" — "}
+                                    <span className="bg-blue-400 text-white px-2">
+                                        {getCategoryName(product.category, categories)}
+                                    </span>
                                 </p>
                             </div>
-                            <button onClick={() => handleDelete(product._id)} className="text-red-500 hover:underline">
-                                Delete
+                            <button
+                                onClick={() => handleDelete(product._id)}
+                                className="bg-red-500 text-white font-black px-4 py-2 border-2 border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                            >
+                                DELETE
                             </button>
-                        </li>
+                        </div>
                     ))}
-                </ul>
+                </div>
             </div>
         </AdminGuard>
     )

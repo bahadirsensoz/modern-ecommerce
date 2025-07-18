@@ -60,37 +60,57 @@ export default function EditProfilePage() {
 
     return (
         <div className="p-6 max-w-xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Edit Profile</h1>
 
-            {success && (
-                <div className="mb-4 bg-green-100 text-green-800 px-4 py-2 rounded">
-                    {success}
+            <button
+                onClick={() => router.push('/dashboard')}
+                className="mb-6 px-4 py-2 bg-black border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 flex items-center gap-2"
+            >
+                ← BACK TO DASHBOARD
+            </button>
+
+            <h1 className="text-5xl font-black mb-8 transform -rotate-2">EDIT PROFILE</h1>
+
+
+
+            <form onSubmit={handleUpdate} className="bg-pink-200 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                {success && (
+                    <div className="mb-4 bg-green-300 border-4 border-black p-3 font-black">
+                        {success}
+                    </div>
+                )}
+                {message && (
+                    <div className="mb-4 bg-red-400 text-white border-4 border-black p-3 font-black">
+                        {message}
+                    </div>
+                )}
+
+                <div className="space-y-4">
+                    <input
+                        value={firstName}
+                        onChange={e => setFirstName(e.target.value)}
+                        placeholder="FIRST NAME"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                    />
+                    <input
+                        value={lastName}
+                        onChange={e => setLastName(e.target.value)}
+                        placeholder="LAST NAME"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                    />
+                    <input
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        placeholder="PHONE"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                    />
+                    <button
+                        type="submit"
+                        className="w-full p-3 bg-blue-400 text-white border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 disabled:opacity-50"
+                        disabled={loading}
+                    >
+                        {loading ? 'SAVING...' : 'SAVE CHANGES'}
+                    </button>
                 </div>
-            )}
-
-            <form onSubmit={handleUpdate} className="space-y-4">
-                <input
-                    value={firstName}
-                    onChange={e => setFirstName(e.target.value)}
-                    placeholder="First Name"
-                    className="input"
-                />
-                <input
-                    value={lastName}
-                    onChange={e => setLastName(e.target.value)}
-                    placeholder="Last Name"
-                    className="input"
-                />
-                <input
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="Phone"
-                    className="input"
-                />
-                <button type="submit" className="btn w-full" disabled={loading}>
-                    {loading ? 'Saving...' : 'Save Changes'}
-                </button>
-                {message && <p className="text-sm text-red-500">{message}</p>}
             </form>
         </div>
     )

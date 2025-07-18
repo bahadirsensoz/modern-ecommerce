@@ -35,83 +35,93 @@ export default function HomePage() {
     : products
 
   return (
-    <div className="p-8 space-y-12">
-      {/* Spotlight */}
-      {spotlight && spotlight._id && (
-        <section className="bg-yellow-50 p-6 rounded shadow">
-          <h2 className="text-2xl font-bold mb-4">🌟 Spotlight Product</h2>
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {spotlight.image && (
-              <img src={spotlight.image} alt={spotlight.name} className="w-48 h-48 object-cover rounded" />
-            )}
-            <div>
-              <h3 className="text-xl font-semibold">{spotlight.name}</h3>
-              <p className="text-gray-600">₺{spotlight.price}</p>
-              <p className="text-sm text-gray-500 mt-1">
-                {getCategoryName(spotlight.category, categories)}
-              </p>
-              <p className="mt-2 text-gray-700">{spotlight.description}</p>
+    <div className="min-h-screen bg-yellow-200">
+      {/* Hero Section */}
+      <section className="bg-black text-white py-16 border-b-8 border-red-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 -rotate-12"></div>
+          <h1 className="text-6xl font-black mb-4 transform -rotate-2">MYSHOP</h1>
+          <p className="text-2xl font-bold bg-red-500 inline-block p-2 transform rotate-1">
+            Discover amazing products at great prices
+          </p>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+        {/* Spotlight */}
+        {spotlight && spotlight._id && (
+          <section className="bg-gray-400 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-200">
+            <div className="p-8">
+              <h2 className="text-4xl font-black mb-6 flex items-center gap-2 transform -rotate-1">
+                <span className="text-5xl">🔥</span> SPOTLIGHT
+              </h2>
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                {spotlight.image && (
+                  <img
+                    src={spotlight.image}
+                    alt={spotlight.name}
+                    className="w-64 h-64 object-cover border-4 border-black transform rotate-2 hover:rotate-0 transition-all"
+                  />
+                )}
+                <div className="flex-1 bg-green-300 p-6 border-4 border-black transform -rotate-1">
+                  <h3 className="text-3xl font-black mb-2">{spotlight.name}</h3>
+                  <p className="text-4xl font-black text-red-600 mb-3 bg-yellow-300 inline-block p-2">
+                    ₺{spotlight.price}
+                  </p>
+                  <p className="inline-block bg-blue-400 px-4 py-2 font-bold text-white border-2 border-black">
+                    {getCategoryName(spotlight.category, categories)}
+                  </p>
+                  <p className="mt-4 text-lg font-bold">{spotlight.description}</p>
+                </div>
+              </div>
             </div>
+          </section>
+        )}
+
+        {/* Category Filter */}
+        <section className="bg-pink-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+            <h2 className="text-3xl font-black transform -rotate-2">BROWSE PRODUCTS</h2>
+            <select
+              className="w-full sm:w-64 px-4 py-2 bg-white border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="">ALL CATEGORIES</option>
+              {categories.map(cat => (
+                <option key={cat._id} value={cat._id}>{cat.name.toUpperCase()}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.map(product => (
+              <div key={product._id}
+                className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
+              >
+                {product.image && (
+                  <div className="relative h-48 border-b-4 border-black">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="p-4">
+                  <h3 className="font-black text-xl mb-2">{product.name}</h3>
+                  <p className="text-red-600 font-black text-2xl mb-2 bg-yellow-300 inline-block p-1">
+                    ₺{product.price}
+                  </p>
+                  <p className="text-sm font-bold bg-blue-400 text-white px-2 py-1 inline-block border-2 border-black">
+                    {getCategoryName(product.category, categories)}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
-      )}
-
-      {/* Recommended */}
-      <section>
-        <h2 className="text-2xl font-bold mb-4">🔥 Recommended Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {recommended.map(product => (
-            <div key={product._id} className="border rounded-lg p-4 shadow hover:shadow-md transition">
-              {product.image && (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-40 object-cover rounded mb-4"
-                />
-              )}
-              <h3 className="text-lg font-semibold">{product.name}</h3>
-              <p className="text-gray-600">₺{product.price}</p>
-              <p className="text-sm text-gray-500">{getCategoryName(product.category, categories)}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Filter + All Products */}
-      <section>
-        <h2 className="text-2xl font-bold mb-4">🛒 All Products</h2>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-1">Filter by Category</label>
-          <select
-            className="border bg-white text-black p-2 rounded w-full sm:w-60"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat._id} value={cat._id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map(product => (
-            <div key={product._id} className="border rounded-lg p-4 shadow hover:shadow-md transition">
-              {product.image && (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-40 object-cover rounded mb-4"
-                />
-              )}
-              <h3 className="text-lg font-semibold">{product.name}</h3>
-              <p className="text-gray-600">₺{product.price}</p>
-              <p className="text-sm text-gray-500">{getCategoryName(product.category, categories)}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      </div>
     </div>
   )
 }
