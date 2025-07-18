@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import { Product, Category } from '@/types'
 import { getCategoryName } from '@/utils/getCategoryName'
 import { matchCategory } from '@/utils/matchCategory'
+import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
+  const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('')
@@ -34,6 +36,10 @@ export default function HomePage() {
     ? products.filter(p => matchCategory(p, selectedCategory))
     : products
 
+  const handleProductClick = (productId: string) => {
+    router.push(`/product/${productId}`)
+  }
+
   return (
     <div className="min-h-screen bg-yellow-200">
       {/* Hero Section */}
@@ -48,9 +54,12 @@ export default function HomePage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-        {/* Spotlight */}
+        {/* Spotlight Section */}
         {spotlight && spotlight._id && (
-          <section className="bg-gray-400 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-200">
+          <section
+            onClick={() => handleProductClick(spotlight._id)}
+            className="bg-gray-400 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 cursor-pointer"
+          >
             <div className="p-8">
               <h2 className="text-4xl font-black mb-6 flex items-center gap-2 transform -rotate-1">
                 <span className="text-5xl">🔥</span> SPOTLIGHT
@@ -96,8 +105,10 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map(product => (
-              <div key={product._id}
-                className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
+              <div
+                key={product._id}
+                onClick={() => handleProductClick(product._id)}
+                className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1 cursor-pointer"
               >
                 {product.image && (
                   <div className="relative h-48 border-b-4 border-black">

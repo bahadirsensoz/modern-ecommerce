@@ -1,6 +1,34 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
 
 export type UserRole = 'customer' | 'admin'
+
+interface IAddress {
+    label?: string
+    street?: string
+    city?: string
+    country?: string
+    postalCode?: string
+    isDefault: boolean
+}
+
+export interface IUser extends Document {
+    _id: mongoose.Types.ObjectId
+    email: string
+    password: string
+    firstName?: string
+    lastName?: string
+    phone?: string
+    role: UserRole
+    addresses: IAddress[]
+    favorites: string[]
+    emailVerified: boolean
+    verificationToken?: string
+    verificationTokenExpires?: Date
+    resetPasswordToken?: string
+    resetPasswordExpires?: Date
+    createdAt: Date
+    updatedAt: Date
+}
 
 const userSchema = new mongoose.Schema(
     {
@@ -34,4 +62,4 @@ const userSchema = new mongoose.Schema(
     { timestamps: true }
 )
 
-export const User = mongoose.model('User', userSchema)
+export const User = mongoose.model<IUser>('User', userSchema)
