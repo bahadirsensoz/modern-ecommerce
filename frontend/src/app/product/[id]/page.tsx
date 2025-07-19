@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import FavoriteButton from '@/components/FavoriteButton'
 
 export default function ProductDetailPage() {
     const router = useRouter()
@@ -14,11 +15,26 @@ export default function ProductDetailPage() {
     const [message, setMessage] = useState('')
     const [userId, setUserId] = useState('')
     const [isEditing, setIsEditing] = useState(false)
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
 
     const fetchProduct = async () => {
         const res = await fetch(`http://localhost:5000/api/products/${id}`)
         const data = await res.json()
         setProduct(data)
+    }
+
+
+    const handleNextImage = () => {
+        if (product.images.length > 1) {
+            setCurrentImageIndex((prev) => (prev + 1) % product.images.length)
+        }
+    }
+
+    const handlePrevImage = () => {
+        if (product.images.length > 1) {
+            setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length)
+        }
     }
 
     const fetchUser = async () => {
@@ -144,11 +160,44 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="border-4 border-black bg-black p-4">
-                    <img
-                        src={product.image || '/placeholder.jpg'}
-                        alt={product.name}
-                        className="w-full object-cover border-4 border-black"
-                    />
+                    <div className="relative">
+                        <img
+                            src={product.images[currentImageIndex] || '/placeholder.jpg'}
+                            alt={product.name}
+                            className="w-full h-[400px] object-cover border-4 border-black"
+                        />
+
+                        {product.images.length > 1 && (
+                            <>
+                                <button
+                                    onClick={handlePrevImage}
+                                    className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black"
+                                >
+                                    ◀
+                                </button>
+                                <button
+                                    onClick={handleNextImage}
+                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black"
+                                >
+                                    ▶
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Thumbnail row */}
+                    <div className="flex mt-4 gap-2 overflow-x-auto">
+                        {product.images.map((img: string, index: number) => (
+                            <img
+                                key={index}
+                                src={img}
+                                alt={`Thumbnail ${index}`}
+                                className={`w-16 h-16 object-cover border-4 cursor-pointer ${currentImageIndex === index ? 'border-red-500' : 'border-gray-400'
+                                    }`}
+                                onClick={() => setCurrentImageIndex(index)}
+                            />
+                        ))}
+                    </div>
                 </div>
 
                 <div className="bg-pink-200 border-4 border-black p-6">
@@ -163,6 +212,11 @@ export default function ProductDetailPage() {
                             ⭐ {averageRating}/5
                         </p>
                     )}
+
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-4xl font-black mb-4">{product.name}</h1>
+                        <FavoriteButton productId={product._id} className="text-3xl" />
+                    </div>
 
                     {/* Variant selectors */}
                     {product.variants?.length > 0 && (

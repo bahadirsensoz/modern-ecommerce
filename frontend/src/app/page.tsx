@@ -5,6 +5,7 @@ import { Product, Category } from '@/types'
 import { getCategoryName } from '@/utils/getCategoryName'
 import { matchCategory } from '@/utils/matchCategory'
 import { useRouter } from 'next/navigation'
+import ProductCard from '@/components/ProductCard'
 
 export default function HomePage() {
   const router = useRouter()
@@ -105,30 +106,11 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map(product => (
-              <div
+              <ProductCard
                 key={product._id}
-                onClick={() => handleProductClick(product._id)}
-                className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1 cursor-pointer"
-              >
-                {product.image && (
-                  <div className="relative h-48 border-b-4 border-black">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="p-4">
-                  <h3 className="font-black text-xl mb-2">{product.name}</h3>
-                  <p className="text-red-600 font-black text-2xl mb-2 bg-yellow-300 inline-block p-1">
-                    ₺{product.price}
-                  </p>
-                  <p className="text-sm font-bold bg-blue-400 text-white px-2 py-1 inline-block border-2 border-black">
-                    {getCategoryName(product.category, categories)}
-                  </p>
-                </div>
-              </div>
+                product={product}
+                categories={categories}
+              />
             ))}
           </div>
         </section>

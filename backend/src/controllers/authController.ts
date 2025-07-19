@@ -28,7 +28,8 @@ export const registerUser = async (req: Request, res: Response) => {
             firstName,
             lastName,
             verificationToken,
-            verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+            verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000,
+            emailVerified: false
         })
 
         const verificationUrl = `http://localhost:3000/verify?token=${verificationToken}`
@@ -89,7 +90,7 @@ export const loginUser = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Invalid credentials' })
         }
 
-        if (!user.emailVerified) {
+        if (user.emailVerified !== true) {
             return res.status(403).json({ message: 'Please verify your email first.' })
         }
 

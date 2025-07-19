@@ -1,4 +1,4 @@
-import mongoose, { Document } from 'mongoose'
+import mongoose, { Document, Types } from 'mongoose'
 
 export type UserRole = 'customer' | 'admin'
 
@@ -20,7 +20,7 @@ export interface IUser extends Document {
     phone?: string
     role: UserRole
     addresses: IAddress[]
-    favorites: string[]
+    favorites: Types.ObjectId[]
     emailVerified: boolean
     verificationToken?: string
     verificationTokenExpires?: Date
@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
                 isDefault: { type: Boolean, default: false },
             }
         ],
-        favorites: [String],
+        favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
         emailVerified: { type: Boolean, default: false },
         verificationToken: String,
         verificationTokenExpires: Date,

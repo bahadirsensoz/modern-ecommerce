@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { User } from '../models/User'
 import bcrypt from 'bcrypt'
+import mongoose from 'mongoose'
 
 export const getMe = async (req: Request, res: Response) => {
     try {
@@ -107,3 +108,50 @@ export const updateAddresses = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server error' })
     }
 }
+
+export const toggleFavorite = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user?._id
+        const { productId } = req.body
+
+        if (!productId) {
+            return res.status(400).json({ message: 'Product ID is required' })
+        }
+
+        const user = await User.findById(userId)
+        if (!user) return res.status(404).json({ message: 'User not found' })
+
+        const objectId = new mongoose.Types.ObjectId(productId)
+        const index = user.favorites.findIndex((fav) => fav.equals(objectId))
+
+        if (index > -1) {
+            user.favorites.splice(index, 1)
+        } else {
+            user.favorites.push(objectId)
+        }
+
+        await user.save()
+
+        res.status(200).json({
+            message: index > -1 ? 'Removed from favorites' : 'Added to favorites',
+            favorites: user.favorites
+        })
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ message: 'Server error' })
+    }
+}
+
+export const getFavorites = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.id
+        const user = await User.findById(userId).populate('favorites')
+        if (!user) return res.status(404).json({ message: 'User not found' })
+
+        res.json(user.favorites)
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ message: 'Server error' })
+    }
+}
+

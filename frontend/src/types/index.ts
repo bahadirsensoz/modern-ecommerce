@@ -5,6 +5,7 @@ export type Product = {
     price: number
     category?: string | { _id: string; name: string }
     image?: string
+    images: string[]
 }
 
 export type Category = {
