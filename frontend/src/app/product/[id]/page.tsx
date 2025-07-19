@@ -215,7 +215,7 @@ export default function ProductDetailPage() {
 
                     <div className="flex items-center justify-between">
                         <h1 className="text-4xl font-black mb-4">{product.name}</h1>
-                        <FavoriteButton productId={product._id} className="text-3xl" />
+                        <FavoriteButton productId={product._id} variant="detail" />
                     </div>
 
                     {/* Variant selectors */}
@@ -272,7 +272,7 @@ export default function ProductDetailPage() {
                                 </p>
                             </div>
                             <p className="font-bold text-sm bg-blue-400 px-2 py-1 border-2 border-black">
-                                {review.user?.firstName} {review.user?.lastName}
+                                {review.user?.firstName} {review.user?.lastName?.charAt(0)}.
                             </p>
                         </div>
                         <p className="font-bold mb-2">{review.comment}</p>

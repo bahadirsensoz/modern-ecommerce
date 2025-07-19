@@ -9,6 +9,6 @@ router.put('/change-password', protect, changePassword)
 router.put('/me', protect, updateProfile)
 router.put('/me/addresses', protect, updateAddresses)
 router.post('/me/favorites', protect, toggleFavorite)
-router.get('/favorites', protect, getFavorites)
+router.get('/me/favorites', protect, getFavorites)
 
 export default router

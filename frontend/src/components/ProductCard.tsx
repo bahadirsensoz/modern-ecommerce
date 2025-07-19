@@ -30,10 +30,7 @@ export default function ProductCard({ product, categories }: ProductCardProps) {
                     height={300}
                     className="w-full h-48 object-cover border-b-4 border-black"
                 />
-                <FavoriteButton
-                    productId={product._id}
-                    className="absolute top-2 right-2 text-2xl bg-white border-2 border-black rounded-full px-2"
-                />
+                <FavoriteButton productId={product._id} variant="card" />
             </div>
             <div className="p-4">
                 <h3 className="font-black text-xl mb-2">{product.name}</h3>

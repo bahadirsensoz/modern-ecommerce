@@ -12,7 +12,7 @@ export default function FavoritesPage() {
         const fetchFavorites = async () => {
             try {
                 const token = localStorage.getItem('token')
-                const res = await fetch('http://localhost:5000/api/users/favorites', {
+                const res = await fetch('http://localhost:5000/api/users/me/favorites', {
                     headers: { Authorization: `Bearer ${token}` },
                 })
 

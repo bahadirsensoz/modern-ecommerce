@@ -1,55 +1,67 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { FaHeart, FaRegHeart } from 'react-icons/fa'
 
-interface FavoriteButtonProps {
+interface Props {
     productId: string
-    className?: string
+    initialIsFavorite?: boolean
+    variant?: 'card' | 'detail'  // new
 }
 
-export default function FavoriteButton({ productId, className }: FavoriteButtonProps) {
-    const [isFavorite, setIsFavorite] = useState(false)
+export default function FavoriteButton({ productId, initialIsFavorite, variant = 'card' }: Props) {
+    const [isFavorite, setIsFavorite] = useState<boolean>(false)
 
     useEffect(() => {
-        const fetchFavorites = async () => {
+        const fetchFavoriteStatus = async () => {
             const token = localStorage.getItem('token')
-            if (!token) return
+            if (!token || initialIsFavorite !== undefined) {
+                setIsFavorite(!!initialIsFavorite)
+                return
+            }
 
             const res = await fetch('http://localhost:5000/api/users/me', {
                 headers: { Authorization: `Bearer ${token}` }
             })
-            const data = await res.json()
-            setIsFavorite(data.favorites?.includes(productId))
+
+            const user = await res.json()
+            setIsFavorite(user.favorites?.includes(productId))
         }
 
-        fetchFavorites()
-    }, [productId])
+        fetchFavoriteStatus()
+    }, [productId, initialIsFavorite])
 
-    const handleToggle = async () => {
+    const toggleFavorite = async () => {
         const token = localStorage.getItem('token')
-        if (!token) return
+        if (!token) return alert('Please login to favorite products.')
 
-        await fetch('http://localhost:5000/api/users/me/favorites', {
+        const res = await fetch('http://localhost:5000/api/users/me/favorites', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ productId })
         })
 
-        setIsFavorite(prev => !prev)
+        if (res.ok) {
+            setIsFavorite(prev => !prev)
+        }
     }
+
+    const buttonClass = variant === 'card'
+        ? 'absolute top-2 right-2 z-10 text-red-500 text-xl bg-white rounded-full p-2 shadow border-2 border-black'
+        : 'text-red-500 text-2xl bg-white rounded-full p-2 border-2 border-black hover:scale-110 transition'
 
     return (
         <button
-            onClick={e => {
+            onClick={(e) => {
+                toggleFavorite()
                 e.stopPropagation()
-                handleToggle()
             }}
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl border-2 border-black ${isFavorite ? 'bg-red-400 text-white' : 'bg-white text-gray-400'} ${className}`}
+            className={buttonClass}
         >
-            ♥
+            {isFavorite ? <FaHeart /> : <FaRegHeart />}
         </button>
     )
 }

@@ -9,14 +9,15 @@ import {
     deleteProductReview,
 } from '../controllers/productController'
 import { protect } from '../middleware/authMiddleware'
+import { adminOnly } from '../middleware/adminOnly'
 
 const router = express.Router()
 
 router.get('/', getProducts)
 router.get('/:id', getProductById)
-router.post('/', createProduct)
-router.put('/:id', updateProduct)
-router.delete('/:id', deleteProduct)
+router.post('/', protect, adminOnly, createProduct)
+router.put('/:id', protect, adminOnly, updateProduct)
+router.delete('/:id', protect, adminOnly, deleteProduct)
 router.post('/:id/reviews', protect, addProductReview)
 router.delete('/:id/reviews', protect, deleteProductReview)
 
