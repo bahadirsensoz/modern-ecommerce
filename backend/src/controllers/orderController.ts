@@ -10,8 +10,6 @@ export const placeOrder = async (req: Request, res: Response) => {
         const sessionId = req.cookies.sessionId
         const { shippingAddress, paymentMethod, email, items, priceDetails } = req.body
 
-        console.log('Place order auth:', { userId, sessionId, hasToken: !!req.headers.authorization })
-
         if (!items?.length) {
             return res.status(400).json({ message: 'No items provided' })
         }
@@ -73,13 +71,6 @@ export const placeOrder = async (req: Request, res: Response) => {
         const order = new Order(orderData)
         await order.save()
 
-        console.log('Order created:', {
-            orderId: order._id,
-            userId: order.user,
-            sessionId: order.sessionId,
-            isAuthenticated: !!orderUser
-        })
-
         const cartQuery = orderUser ? { user: orderUser } : { sessionId }
         await Cart.findOneAndDelete(cartQuery)
 
@@ -120,7 +111,6 @@ export const getMyOrders = async (req: Request, res: Response) => {
                 select: 'name price image description'
             })
 
-        console.log(`Found ${orders.length} orders for ${userId ? 'user' : 'guest'}:`, userId || sessionId)
 
         res.json(orders)
     } catch (error) {
@@ -153,7 +143,6 @@ export const getOrder = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Order not found' })
         }
 
-        console.log('Order found with items:', order.orderItems)
         res.json(order)
     } catch (error) {
         console.error('GET ORDER ERROR:', error)
@@ -206,7 +195,6 @@ export const getAllOrders = async (req: Request, res: Response) => {
             .populate('user', 'email firstName lastName')
             .sort({ createdAt: -1 })
 
-        console.log(`Admin fetched ${orders.length} orders`)
         res.json(orders)
     } catch (error) {
         console.error('Get all orders error:', error)
@@ -220,7 +208,6 @@ export const getAllOrders = async (req: Request, res: Response) => {
 export const simulatePayment = async (req: Request, res: Response) => {
     try {
         const orderId = req.params.id
-        console.log('Processing payment for order:', orderId)
 
         const order = await Order.findById(orderId)
         if (!order) {
@@ -245,7 +232,6 @@ export const simulatePayment = async (req: Request, res: Response) => {
         const userId = order.user
         const sessionId = order.sessionId
 
-        console.log('Attempting to delete cart for:', { userId, sessionId })
 
         const cartQuery = {
             $or: [
@@ -255,7 +241,6 @@ export const simulatePayment = async (req: Request, res: Response) => {
         }
 
         const deletedCart = await Cart.findOneAndDelete(cartQuery)
-        console.log('Cart deletion result:', deletedCart?._id || 'No cart found')
 
         await new Promise(resolve => setTimeout(resolve, 1000))
 
@@ -267,7 +252,6 @@ export const simulatePayment = async (req: Request, res: Response) => {
         const updatedOrder = await Order.findById(orderId)
             .populate('orderItems.product')
 
-        console.log('Payment processed successfully, cart cleared')
 
         const cartCheck = await Cart.findOne(cartQuery)
         if (cartCheck) {

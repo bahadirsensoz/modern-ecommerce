@@ -21,7 +21,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         }
 
         ; (req as any).user = user
-        console.log('Auth middleware: User authenticated:', user._id)
         next()
     } catch (error) {
         console.error('Auth middleware error:', error)

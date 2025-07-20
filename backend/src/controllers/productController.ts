@@ -64,9 +64,6 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
     try {
-        console.log('Creating product with body:', req.body)
-        console.log('Files received:', req.files)
-
         if (!req.body?.name || !req.body?.price) {
             return res.status(400).json({
                 message: 'Name and price are required fields'
@@ -80,7 +77,6 @@ export const createProduct = async (req: Request, res: Response) => {
                 try {
                     const imageUrl = await uploadImage(file)
                     imageUrls.push(imageUrl)
-                    console.log('✅ Image uploaded:', imageUrl)
                 } catch (uploadError) {
                     console.error('❌ Image upload failed:', uploadError)
                 }
@@ -96,7 +92,6 @@ export const createProduct = async (req: Request, res: Response) => {
         })
 
         await product.save()
-        console.log('✅ Product saved:', product)
 
         res.status(201).json(product)
     } catch (error: any) {

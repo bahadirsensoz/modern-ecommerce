@@ -154,7 +154,6 @@ export default function CheckoutPage() {
                 totalPrice: prices.total
             }
 
-            console.log('Sending order with:', orderBody)
 
             if (isLoggedIn && saveAddress && !selectedAddressId) {
                 try {
@@ -201,7 +200,6 @@ export default function CheckoutPage() {
             )
 
             const responseData = res.data
-            console.log('Order response:', responseData)
 
             clearCart()
             router.push(`/orders/${responseData._id}`)
@@ -222,7 +220,6 @@ export default function CheckoutPage() {
                 console.error('No auth token found')
             }
 
-            console.log('Placing order with token:', !!token)
 
             const { data } = await axios.post(
                 'http://localhost:5000/api/orders',
@@ -254,7 +251,6 @@ export default function CheckoutPage() {
             )
 
             const responseData = data
-            console.log('Order response:', responseData)
 
             clearCart()
             router.push(`/orders/${responseData._id}`)

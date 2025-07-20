@@ -127,7 +127,6 @@ export const clearCart = async (req: Request, res: Response) => {
         }
 
         const deletedCart = await Cart.findOneAndDelete(cartQuery)
-        console.log('Cart deleted:', deletedCart?._id || 'No cart found')
 
         res.json({ message: 'Cart cleared successfully' })
     } catch (error) {

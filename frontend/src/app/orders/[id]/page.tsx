@@ -22,7 +22,6 @@ const OrderDetailsPage = () => {
             const sessionId = localStorage.getItem('sessionId')
 
             try {
-                console.log('Fetching order:', id)
                 const { data } = await axios.get<Order>(
                     `http://localhost:5000/api/orders/${id}`,
                     {
@@ -33,7 +32,6 @@ const OrderDetailsPage = () => {
                         withCredentials: true
                     }
                 )
-                console.log('Order data received:', data)
                 setOrder(data)
                 setError('')
             } catch (error: any) {

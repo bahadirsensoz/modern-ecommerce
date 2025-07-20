@@ -9,9 +9,6 @@ export const getCategories = async (_: Request, res: Response) => {
 
 export const createCategory = async (req: Request, res: Response) => {
     try {
-        console.log('Creating category with body:', req.body)
-        console.log('File received:', req.file)
-
         if (!req.body?.name) {
             return res.status(400).json({
                 message: 'Name is required'
@@ -23,7 +20,6 @@ export const createCategory = async (req: Request, res: Response) => {
         if (req.file) {
             try {
                 imageUrl = await uploadImage(req.file)
-                console.log('✅ Image uploaded:', imageUrl)
             } catch (uploadError) {
                 console.error('❌ Image upload failed:', uploadError)
             }
@@ -36,7 +32,6 @@ export const createCategory = async (req: Request, res: Response) => {
         })
 
         await category.save()
-        console.log('✅ Category saved:', category)
 
         res.status(201).json(category)
     } catch (error: any) {
