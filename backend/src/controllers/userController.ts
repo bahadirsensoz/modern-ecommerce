@@ -64,48 +64,36 @@ export const changePassword = async (req: Request, res: Response) => {
 
 export const updateAddresses = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId
+        const userId = (req as any).user?._id
         const { addresses } = req.body
 
         if (!Array.isArray(addresses)) {
-            return res.status(400).json({ message: 'Invalid addresses format' })
+            return res.status(400).json({ message: 'Addresses must be an array' })
         }
 
-        for (const address of addresses) {
-            if (
-                typeof address.label !== 'string' ||
-                typeof address.street !== 'string' ||
-                typeof address.city !== 'string' ||
-                typeof address.country !== 'string' ||
-                typeof address.postalCode !== 'string' ||
-                (address.isDefault !== undefined && typeof address.isDefault !== 'boolean')
-            ) {
-                return res.status(400).json({ message: 'Each address must have valid fields' })
-            }
+        const hasNewDefault = addresses.some(addr => addr.isDefault)
+        if (hasNewDefault) {
+            addresses.forEach((addr, index) => {
+                if (index !== addresses.findIndex(a => a.isDefault)) {
+                    addr.isDefault = false
+                }
+            })
         }
 
-        const defaultCount = addresses.filter(a => a.isDefault).length
-        if (defaultCount > 1) {
-            return res.status(400).json({ message: 'Only one address can be default' })
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { addresses },
+            { new: true }
+        )
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
         }
 
-        if (defaultCount === 0 && addresses.length > 0) {
-            addresses[0].isDefault = true
-        }
-
-        const user = await User.findById(userId)
-        if (!user) return res.status(404).json({ message: 'User not found' })
-
-        user.set('addresses', addresses)
-        await user.save()
-
-        res.json({
-            message: 'Addresses updated successfully',
-            addresses: user.addresses,
-        })
-    } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: 'Server error' })
+        res.json(user.addresses)
+    } catch (error) {
+        console.error('Update addresses error:', error)
+        res.status(500).json({ message: 'Failed to update addresses' })
     }
 }
 
@@ -154,4 +142,3 @@ export const getFavorites = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server error' })
     }
 }
-

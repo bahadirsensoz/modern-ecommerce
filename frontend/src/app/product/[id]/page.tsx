@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import FavoriteButton from '@/components/FavoriteButton'
+import { useCartStore } from '@/store/cartStore'
 
 export default function ProductDetailPage() {
     const router = useRouter()
@@ -251,10 +252,39 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
                     )}
+                    <button
+                        onClick={async () => {
+                            const newItem = {
+                                productId: product._id,
+                                name: product.name,
+                                price: product.price,
+                                image: product.images[0],
+                                quantity: 1,
+                                ...(selectedSize && { size: selectedSize }),
+                                ...(selectedColor && { color: selectedColor })
+                            }
 
-                    <button className="w-full p-4 bg-blue-400 text-white border-4 border-black font-black mt-4">
-                        ADD TO CART
+                            try {
+                                await useCartStore.getState().addItem(newItem)
+                                alert('Added to cart!')
+                            } catch (error: any) {
+                                console.error('Add to cart error:', error)
+                                alert(error.message || 'Failed to add to cart')
+                            }
+                        }}
+                        disabled={product.variants?.length > 0 && (!selectedSize || !selectedColor)}
+                        className={`w-full p-4 text-white border-4 border-black font-black mt-4 transition-all duration-150
+                            ${product.variants?.length > 0 && (!selectedSize || !selectedColor)
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-400 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                            }`}
+                    >
+                        {product.variants?.length > 0 && (!selectedSize || !selectedColor)
+                            ? 'PLEASE SELECT SIZE AND COLOR'
+                            : 'ADD TO CART'
+                        }
                     </button>
+
                 </div>
             </div>
 

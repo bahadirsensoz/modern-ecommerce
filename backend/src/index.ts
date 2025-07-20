@@ -6,6 +6,11 @@ import authRoutes from './routes/auth'
 import categoryRoutes from './routes/category'
 import productRoutes from './routes/product'
 import userRoutes from './routes/user'
+import cartRoutes from './routes/cartRoute'
+import orderRoutes from './routes/orderRoute'
+import cookieParser from 'cookie-parser'
+import { assignSessionId } from './middleware/sessionMiddleware'
+
 
 dotenv.config()
 
@@ -17,11 +22,16 @@ app.use(cors({
     credentials: true
 }))
 app.use(express.json())
+app.use(cookieParser())
+app.use(assignSessionId)
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/cart', cartRoutes)
+app.use('/api/orders', orderRoutes)
+
 
 app.get('/', (req, res) => {
     res.send('Backend is running')

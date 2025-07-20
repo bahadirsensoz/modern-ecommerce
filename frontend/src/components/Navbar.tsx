@@ -4,6 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { FaHeart, FaShoppingCart } from 'react-icons/fa'
+import { useCartStore } from '@/store/cartStore'
+
+
+function safeJSONParse<T>(raw: string | null, fallback: T): T {
+    try {
+        return raw ? JSON.parse(raw) : fallback
+    } catch (err) {
+        console.error('Safe JSON parse failed:', err)
+        return fallback
+    }
+}
 
 export default function Navbar() {
     const router = useRouter()
@@ -11,40 +22,83 @@ export default function Navbar() {
     const [isAdmin, setIsAdmin] = useState(false)
     const [showDropdown, setShowDropdown] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [isHydrated, setIsHydrated] = useState(false)
+    const { items, setCart } = useCartStore()
 
-    const checkAuth = async () => {
-        setLoading(true)
+    const totalItems = items.reduce((acc, i) => acc + i.quantity, 0)
+
+    const checkAuthAndCart = async () => {
         const token = localStorage.getItem('token')
-
-        if (!token) {
-            setIsLoggedIn(false)
-            setIsAdmin(false)
-            setLoading(false)
-            return
-        }
+        setLoading(true)
 
         try {
-            const res = await fetch('http://localhost:5000/api/users/me', {
-                headers: { Authorization: `Bearer ${token}` },
-            })
-            if (!res.ok) throw new Error('Auth failed')
+            if (!token) {
+                const guestCart = safeJSONParse(localStorage.getItem('cart'), [])
+                setCart(guestCart)
+                setIsLoggedIn(false)
+                setIsAdmin(false)
+                setLoading(false)
+                return
+            }
 
-            const user = await res.json()
+            const authRes = await fetch('http://localhost:5000/api/users/me', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            })
+
+            if (!authRes.ok) {
+                throw new Error('Authentication failed')
+            }
+
+            const user = await authRes.json()
             setIsLoggedIn(true)
             setIsAdmin(user.role === 'admin')
+
+            try {
+                const cartRes = await fetch('http://localhost:5000/api/cart', {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                })
+
+                if (cartRes.ok) {
+                    const cartData = await cartRes.json()
+                    const cartItems = cartData.items?.map((item: any) => ({
+                        productId: item.product._id,
+                        name: item.product.name,
+                        price: item.product.price,
+                        image: item.product.images?.[0] || '/placeholder.jpg',
+                        quantity: item.quantity
+                    })) || []
+                    setCart(cartItems)
+                }
+            } catch (cartError) {
+                console.error('Cart fetch failed:', cartError)
+                setCart([])
+            }
         } catch (error) {
             console.error('Auth check failed:', error)
+            localStorage.removeItem('token')
             setIsLoggedIn(false)
             setIsAdmin(false)
-            localStorage.removeItem('token')
+            setCart([])
         } finally {
             setLoading(false)
         }
     }
 
     useEffect(() => {
-        checkAuth()
-        const handleAuthChange = () => checkAuth()
+        const handleAuthChange = () => {
+            checkAuthAndCart()
+        }
+
+        checkAuthAndCart()
+
         window.addEventListener('storage', handleAuthChange)
         window.addEventListener('auth-change', handleAuthChange)
 
@@ -52,6 +106,10 @@ export default function Navbar() {
             window.removeEventListener('storage', handleAuthChange)
             window.removeEventListener('auth-change', handleAuthChange)
         }
+    }, [])
+
+    useEffect(() => {
+        setIsHydrated(true)
     }, [])
 
     const handleLogout = () => {
@@ -62,20 +120,6 @@ export default function Navbar() {
         window.dispatchEvent(new Event('storage'))
         window.dispatchEvent(new Event('auth-change'))
         router.push('/')
-    }
-
-    if (loading) {
-        return (
-            <nav className="bg-gray-300 border-b-4 border-black sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-20">
-                        <h1 className="text-3xl font-black cursor-pointer transform -rotate-2">
-                            MYSHOP
-                        </h1>
-                    </div>
-                </div>
-            </nav>
-        )
     }
 
     return (
@@ -90,6 +134,22 @@ export default function Navbar() {
                     </h1>
 
                     <div className="flex items-center gap-4">
+                        {/* CART ICON FOR EVERYONE */}
+                        <div className="relative">
+                            <button
+                                onClick={() => router.push('/cart')}
+                                className="relative text-black text-xl"
+                                title="Cart"
+                            >
+                                <FaShoppingCart />
+                                {isHydrated && totalItems > 0 && (
+                                    <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                                        {totalItems}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+
                         {isLoggedIn ? (
                             <>
                                 <button
@@ -98,14 +158,6 @@ export default function Navbar() {
                                     title="Favorites"
                                 >
                                     <FaHeart />
-                                </button>
-
-                                <button
-                                    onClick={() => router.push('/cart')}
-                                    className="text-black hover:text-yellow-600 text-xl"
-                                    title="Cart"
-                                >
-                                    <FaShoppingCart />
                                 </button>
 
                                 <div className="relative">
@@ -128,14 +180,21 @@ export default function Navbar() {
                                         <div className="absolute right-0 mt-2 w-48 bg-pink-200 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                                             <button
                                                 onClick={() => {
-                                                    router.push(
-                                                        isAdmin ? '/admin' : '/dashboard'
-                                                    )
+                                                    router.push(isAdmin ? '/admin' : '/dashboard')
                                                     setShowDropdown(false)
                                                 }}
                                                 className="block w-full text-left px-4 py-2 text-black font-bold hover:bg-blue-400 hover:text-white border-b-4 border-black"
                                             >
                                                 {isAdmin ? 'ADMIN PANEL' : 'DASHBOARD'}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    router.push('/orders')
+                                                    setShowDropdown(false)
+                                                }}
+                                                className="block w-full text-left px-4 py-2 text-black font-bold hover:bg-green-400 hover:text-white border-b-4 border-black"
+                                            >
+                                                ORDERS
                                             </button>
                                             <button
                                                 onClick={handleLogout}

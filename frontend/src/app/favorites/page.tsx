@@ -17,7 +17,6 @@ export default function FavoritesPage() {
                 })
 
                 const data = await res.json()
-                console.log("Fetched favorites:", data)
 
                 setFavorites(Array.isArray(data) ? data : [])
             } catch (error) {
