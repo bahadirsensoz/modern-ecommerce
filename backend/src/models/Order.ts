@@ -20,6 +20,9 @@ export interface IOrder extends Document {
         country: string
     }
     paymentMethod: string
+    subtotal: number
+    tax: number
+    shipping: number
     totalPrice: number
     isPaid: boolean
     paidAt?: Date
@@ -48,6 +51,9 @@ const orderSchema = new Schema<IOrder>(
             country: { type: String, required: true },
         },
         paymentMethod: { type: String, required: true },
+        subtotal: { type: Number, required: true },
+        tax: { type: Number, required: true },
+        shipping: { type: Number, required: true },
         totalPrice: { type: Number, required: true },
         isPaid: { type: Boolean, default: false },
         paidAt: { type: Date },

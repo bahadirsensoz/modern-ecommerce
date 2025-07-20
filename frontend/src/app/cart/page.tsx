@@ -3,6 +3,7 @@
 import { useCartStore } from '@/store/cartStore'
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { calculatePrices } from '@/utils/priceCalculations'
 
 export default function CartPage() {
     const { items, removeFromCart, updateQuantity } = useCartStore()
@@ -35,10 +36,7 @@ export default function CartPage() {
         removeFromCart(productId)
     }
 
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const tax = subtotal * 0.18
-    const shipping = items.length > 0 ? 50 : 0
-    const total = subtotal + tax + shipping
+    const { subtotal, tax, shipping, total } = calculatePrices(items)
 
     return (
         <div className="max-w-4xl mx-auto p-4">

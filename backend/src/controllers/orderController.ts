@@ -8,7 +8,7 @@ export const placeOrder = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user?._id
         const sessionId = req.cookies.sessionId
-        const { shippingAddress, paymentMethod, email, items } = req.body
+        const { shippingAddress, paymentMethod, email, items, priceDetails } = req.body
 
         console.log('Place order auth:', { userId, sessionId, hasToken: !!req.headers.authorization })
 
@@ -31,7 +31,6 @@ export const placeOrder = async (req: Request, res: Response) => {
             }
         }
 
-        // Validate and populate items with current prices
         const populatedItems = await Promise.all(items.map(async (item: any) => {
             const product = await Product.findById(item.product)
             if (!product) {
@@ -43,9 +42,16 @@ export const placeOrder = async (req: Request, res: Response) => {
             }
         }))
 
-        const totalPrice = populatedItems.reduce((acc, item) => {
+        const subtotal = populatedItems.reduce((acc, item) => {
             return acc + (item.price * item.quantity)
         }, 0)
+
+        const TAX_RATE = 0.18
+        const SHIPPING_COST = 50
+
+        const tax = subtotal * TAX_RATE
+        const shipping = SHIPPING_COST
+        const totalPrice = subtotal + tax + shipping
 
         const orderData = {
             orderItems: items,
@@ -54,6 +60,9 @@ export const placeOrder = async (req: Request, res: Response) => {
                 fullName
             },
             paymentMethod,
+            subtotal,
+            tax,
+            shipping,
             totalPrice,
             isPaid: false,
             status: 'pending',
@@ -199,6 +208,17 @@ export const simulatePayment = async (req: Request, res: Response) => {
 
         if (order.isPaid) {
             return res.status(400).json({ message: 'Order is already paid' })
+        }
+
+        if (!order.subtotal || !order.tax || !order.shipping) {
+            const subtotal = order.orderItems.reduce((acc, item: any) => {
+                return acc + (item.price * item.quantity)
+            }, 0)
+
+            order.subtotal = subtotal
+            order.tax = subtotal * 0.18
+            order.shipping = 50
+            order.totalPrice = order.subtotal + order.tax + order.shipping
         }
 
         const userId = order.user

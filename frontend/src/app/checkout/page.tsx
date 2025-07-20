@@ -1,6 +1,7 @@
 'use client'
 
 import { useCartStore } from '@/store/cartStore'
+import { calculatePrices } from '@/utils/priceCalculations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
@@ -128,6 +129,8 @@ export default function CheckoutPage() {
 
         try {
             const token = localStorage.getItem('token')
+            const prices = calculatePrices(items)
+
             const orderBody = {
                 email: form.email,
                 shippingAddress: {
@@ -144,7 +147,11 @@ export default function CheckoutPage() {
                     quantity: item.quantity,
                     size: item.size,
                     color: item.color
-                }))
+                })),
+                subtotal: prices.subtotal,
+                tax: prices.tax,
+                shipping: prices.shipping,
+                totalPrice: prices.total
             }
 
             console.log('Sending order with:', orderBody)
@@ -183,24 +190,7 @@ export default function CheckoutPage() {
 
             const res = await axios.post(
                 'http://localhost:5000/api/orders',
-                {
-                    shippingAddress: {
-                        fullName: form.fullName,
-                        address: form.street,
-                        city: form.city,
-                        postalCode: form.postalCode,
-                        country: form.country,
-                        label: form.label || 'Default Address'
-                    },
-                    paymentMethod: form.paymentMethod,
-                    email: form.email,
-                    items: items.map(item => ({
-                        product: item.productId,
-                        quantity: item.quantity,
-                        size: item.size,
-                        color: item.color
-                    }))
-                },
+                orderBody,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -408,6 +398,35 @@ export default function CheckoutPage() {
                     <option value="Credit Card">Credit Card</option>
                     <option value="Cash on Delivery">Cash on Delivery</option>
                 </select>
+
+                {/* Price Summary */}
+                <div className="mt-6 border-t pt-4 space-y-2">
+                    <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+                    {items.map(item => (
+                        <div key={item.productId} className="flex justify-between">
+                            <span>{item.name} x {item.quantity}</span>
+                            <span>${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                    ))}
+                    <div className="border-t mt-4 pt-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span>Subtotal:</span>
+                            <span>${calculatePrices(items).subtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Tax (18%):</span>
+                            <span>${calculatePrices(items).tax.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Shipping:</span>
+                            <span>${calculatePrices(items).shipping.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-lg border-t pt-2">
+                            <span>Total:</span>
+                            <span>${calculatePrices(items).total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
 
                 <button
                     type="submit"

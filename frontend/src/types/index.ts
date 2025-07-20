@@ -42,6 +42,9 @@ export interface ShippingAddress {
 }
 
 export interface Order {
+    subtotal: number
+    shipping: number
+    tax: number
     _id: string
     user?: string
     email: string

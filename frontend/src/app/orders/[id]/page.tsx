@@ -153,8 +153,24 @@ const OrderDetailsPage = () => {
             </div>
 
             <div className="mt-6 border-t pt-4">
-                <div className="text-right">
-                    <p className="text-lg">Total: <span className="font-bold">${order.totalPrice.toFixed(2)}</span></p>
+                <h2 className="text-xl font-semibold mb-2">Price Details</h2>
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span>${order.orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Tax (18%):</span>
+                        <span>${order.tax.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Shipping:</span>
+                        <span>${order.shipping.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg border-t pt-2">
+                        <span>Total:</span>
+                        <span>${order.totalPrice.toFixed(2)}</span>
+                    </div>
                 </div>
             </div>
 
