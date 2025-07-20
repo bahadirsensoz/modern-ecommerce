@@ -23,6 +23,12 @@ export default function AdminDashboardPage() {
                     >
                         📂 MANAGE CATEGORIES
                     </button>
+                    <button
+                        onClick={() => router.push('/admin/orders')}
+                        className="p-8 bg-green-400 border-4 border-black text-white font-black text-2xl hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
+                    >
+                        📦 MANAGE ORDERS
+                    </button>
                 </div>
             </div>
         </AdminGuard>

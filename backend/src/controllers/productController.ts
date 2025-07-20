@@ -1,11 +1,14 @@
 import { Request, Response } from 'express'
 import { Product } from '../models/Product'
 import { IUser } from '../models/User'
+import multer from 'multer'
+import cloudinary from '../config/cloudinary'
 
 declare global {
     namespace Express {
         interface Request {
             user?: IUser
+            files?: { [fieldname: string]: Express.Multer.File[] } | Express.Multer.File[]
         }
     }
 }
@@ -24,35 +27,32 @@ export const getProductById = async (req: Request, res: Response) => {
     res.json(product)
 }
 
+// Add image upload handling to createProduct
+
 export const createProduct = async (req: Request, res: Response) => {
-    const {
-        name,
-        description,
-        price,
-        stock,
-        images,
-        category,
-        variants,
-        tags,
-        isFeatured,
-        specifications,
-    } = req.body
+    try {
+        const imageUrls = []
 
-    const product = new Product({
-        name,
-        description,
-        price,
-        stock,
-        images,
-        category,
-        variants,
-        tags,
-        isFeatured,
-        specifications,
-    })
+        if (req.files) {
+            const files = req.files as Express.Multer.File[]
+            for (const file of files) {
+                const result = await cloudinary.uploader.upload(file.path, {
+                    folder: 'products',
+                })
+                imageUrls.push(result.secure_url)
+            }
+        }
 
-    await product.save()
-    res.status(201).json(product)
+        const product = new Product({
+            ...req.body,
+            images: imageUrls,
+        })
+
+        await product.save()
+        res.status(201).json(product)
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to create product' })
+    }
 }
 
 export const updateProduct = async (req: Request, res: Response) => {

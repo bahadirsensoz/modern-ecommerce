@@ -196,6 +196,27 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     res.status(200).json(order)
 }
 
+export const getAllOrders = async (req: Request, res: Response) => {
+    try {
+        const orders = await Order.find()
+            .populate({
+                path: 'orderItems.product',
+                select: 'name price image'
+            })
+            .populate('user', 'email firstName lastName')
+            .sort({ createdAt: -1 })
+
+        console.log(`Admin fetched ${orders.length} orders`)
+        res.json(orders)
+    } catch (error) {
+        console.error('Get all orders error:', error)
+        res.status(500).json({
+            message: 'Failed to fetch orders',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        })
+    }
+}
+
 export const simulatePayment = async (req: Request, res: Response) => {
     try {
         const orderId = req.params.id

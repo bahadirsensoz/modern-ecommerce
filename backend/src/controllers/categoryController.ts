@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { Category } from '../models/Category'
+import { v2 as cloudinary } from 'cloudinary'
 
 export const getCategories = async (_: Request, res: Response) => {
     const categories = await Category.find().sort({ sortOrder: 1 })
@@ -7,10 +8,26 @@ export const getCategories = async (_: Request, res: Response) => {
 }
 
 export const createCategory = async (req: Request, res: Response) => {
-    const { name, description, image } = req.body
-    const category = new Category({ name, description, image })
-    await category.save()
-    res.status(201).json(category)
+    try {
+        let imageUrl = ''
+
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: 'categories'
+            })
+            imageUrl = result.secure_url
+        }
+
+        const category = new Category({
+            ...req.body,
+            image: imageUrl
+        })
+
+        await category.save()
+        res.status(201).json(category)
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to create category' })
+    }
 }
 
 export const updateCategory = async (req: Request, res: Response) => {
