@@ -6,7 +6,7 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa'
 interface Props {
     productId: string
     initialIsFavorite?: boolean
-    variant?: 'card' | 'detail'  // new
+    variant?: 'card' | 'detail'
 }
 
 export default function FavoriteButton({ productId, initialIsFavorite, variant = 'card' }: Props) {

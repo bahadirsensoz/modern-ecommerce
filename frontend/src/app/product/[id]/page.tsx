@@ -67,7 +67,6 @@ export default function ProductDetailPage() {
         setComment(review.comment)
         setRating(review.rating)
         setIsEditing(true)
-        // Scroll to review form
         document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth' })
     }
 

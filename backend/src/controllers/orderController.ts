@@ -251,7 +251,7 @@ export const simulatePayment = async (req: Request, res: Response) => {
         const cartCheck = await Cart.findOne(cartQuery)
         if (cartCheck) {
             console.error('Cart still exists after deletion attempt')
-            await Cart.findOneAndDelete(cartQuery) // Try delete again
+            await Cart.findOneAndDelete(cartQuery)
         }
 
         res.json({
