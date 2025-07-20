@@ -5,6 +5,9 @@ import { User } from '../models/User'
 import { generateToken } from '../utils/generateToken'
 import { sendEmail } from '../utils/mailer'
 
+
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+
 // Register
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -32,7 +35,7 @@ export const registerUser = async (req: Request, res: Response) => {
             emailVerified: false
         })
 
-        const verificationUrl = `http://localhost:3000/verify?token=${verificationToken}`
+        const verificationUrl = `${frontendUrl}/verify?token=${verificationToken}`
         await sendEmail(
             newUser.email,
             'Verify Your Email',
@@ -124,7 +127,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
         await user.save()
 
-        const resetUrl = `http://localhost:3000/reset-password?token=${token}`
+        const resetUrl = `${frontendUrl}/reset-password?token=${token}`
         await sendEmail(
             user.email,
             'Reset Your Password',
