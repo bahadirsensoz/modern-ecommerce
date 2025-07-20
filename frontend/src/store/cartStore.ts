@@ -20,7 +20,7 @@ export const useCartStore = create<CartStore>()(
 
                 if (token) {
                     try {
-                        const res = await fetch('http://localhost:5000/api/cart/add', {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/add`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export const useCartStore = create<CartStore>()(
 
                 if (token) {
                     try {
-                        const res = await fetch('http://localhost:5000/api/cart/remove', {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/remove`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ export const useCartStore = create<CartStore>()(
 
                 if (token) {
                     try {
-                        const res = await fetch('http://localhost:5000/api/cart/update', {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/update`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',

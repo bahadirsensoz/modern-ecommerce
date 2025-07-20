@@ -36,7 +36,7 @@ export default function CheckoutPage() {
             if (!token) return
 
             try {
-                const res = await fetch('http://localhost:5000/api/users/me', {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     },
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
 
             if (isLoggedIn && saveAddress && !selectedAddressId) {
                 try {
-                    const res = await fetch('http://localhost:5000/api/users/me/addresses', {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/addresses`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export default function CheckoutPage() {
             }
 
             const res = await axios.post(
-                'http://localhost:5000/api/orders',
+                `${process.env.NEXT_PUBLIC_API_URL}/orders`,
                 orderBody,
                 {
                     headers: {
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
 
 
             const { data } = await axios.post(
-                'http://localhost:5000/api/orders',
+                `${process.env.NEXT_PUBLIC_API_URL}/orders`,
                 {
                     shippingAddress: {
                         fullName: form.fullName,

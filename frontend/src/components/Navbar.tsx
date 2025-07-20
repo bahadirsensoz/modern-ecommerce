@@ -42,7 +42,7 @@ export default function Navbar() {
                 return
             }
 
-            const authRes = await fetch('http://localhost:5000/api/users/me', {
+            const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -59,7 +59,7 @@ export default function Navbar() {
             setIsAdmin(user.role === 'admin')
 
             try {
-                const cartRes = await fetch('http://localhost:5000/api/cart', {
+                const cartRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json'

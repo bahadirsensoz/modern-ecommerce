@@ -19,7 +19,7 @@ export default function CartHydration() {
             const token = localStorage.getItem('token')
 
             try {
-                const res = await fetch('http://localhost:5000/api/cart', {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
                     headers: {
                         ...(token && {
                             Authorization: `Bearer ${token}`

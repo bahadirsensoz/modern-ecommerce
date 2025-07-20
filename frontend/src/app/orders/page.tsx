@@ -16,7 +16,7 @@ const OrderHistoryPage = () => {
             const sessionId = localStorage.getItem('sessionId')
 
             try {
-                const { data } = await axios.get('http://localhost:5000/api/orders/me', {
+                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/me`, {
                     headers: {
                         ...(token && { Authorization: `Bearer ${token}` }),
                         ...(sessionId && { 'X-Session-Id': sessionId })

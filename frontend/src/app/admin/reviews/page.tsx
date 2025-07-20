@@ -12,7 +12,7 @@ export default function AdminReviewsPage() {
     const fetchProducts = async () => {
         try {
             const token = localStorage.getItem('token')
-            const res = await fetch('http://localhost:5000/api/products/reviews/pending', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/reviews/pending`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -36,7 +36,7 @@ export default function AdminReviewsPage() {
         try {
             setLoading(true)
             const token = localStorage.getItem('token')
-            const res = await fetch(`http://localhost:5000/api/products/${productId}/reviews/${reviewId}/approve`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/reviews/${reviewId}/approve`, {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -60,7 +60,7 @@ export default function AdminReviewsPage() {
         try {
             setLoading(true)
             const token = localStorage.getItem('token')
-            const res = await fetch(`http://localhost:5000/api/products/${productId}/reviews/${reviewId}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/reviews/${reviewId}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`

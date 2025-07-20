@@ -20,7 +20,7 @@ export default function FavoriteButton({ productId, initialIsFavorite, variant =
                 return
             }
 
-            const res = await fetch('http://localhost:5000/api/users/me', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
 
@@ -35,7 +35,7 @@ export default function FavoriteButton({ productId, initialIsFavorite, variant =
         const token = localStorage.getItem('token')
         if (!token) return alert('Please login to favorite products.')
 
-        const res = await fetch('http://localhost:5000/api/users/me/favorites', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/favorites`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${token}`,
