@@ -9,6 +9,8 @@ export type Product = {
     image?: string
     images: string[]
     reviews: Review[]
+    rating: number
+    createdAt: string;
 }
 
 export type Category = {

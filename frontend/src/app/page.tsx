@@ -13,6 +13,13 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [sortBy, setSortBy] = useState('')
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' })
+  const [searchQuery, setSearchQuery] = useState('')
+  const [email, setEmail] = useState('')
+  const [page, setPage] = useState(1)
+  const ITEMS_PER_PAGE = 9
 
   const fetchProducts = async () => {
     const res = await fetch('http://localhost:5000/api/products')
@@ -31,12 +38,43 @@ export default function HomePage() {
     fetchCategories()
   }, [])
 
-  const recommended = products.slice(0, 4)
-  const spotlight = products.reduce((max, p) => p.price > max.price ? p : max, products[0] || {} as Product)
+  // Get newest products (last 4 added)
+  const newArrivals = [...products]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 4)
 
-  const filteredProducts = selectedCategory
-    ? products.filter(p => matchCategory(p, selectedCategory))
-    : products
+  // Get popular products (highest rated)
+  const popularProducts = [...products]
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 4)
+
+  // Filter and sort products
+  const filteredAndSortedProducts = products
+    .filter(p => {
+      const matchesCategory = !selectedCategory || matchCategory(p, selectedCategory)
+      const matchesSearch = !searchQuery ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      const matchesPrice = (!priceRange.min || p.price >= Number(priceRange.min)) &&
+        (!priceRange.max || p.price <= Number(priceRange.max))
+      return matchesCategory && matchesSearch && matchesPrice
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-asc': return a.price - b.price
+        case 'price-desc': return b.price - a.price
+        case 'rating': return b.rating - a.rating
+        case 'newest': return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        default: return 0
+      }
+    })
+
+  // Paginate results
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE)
+  const paginatedProducts = filteredAndSortedProducts.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  )
 
   const handleProductClick = (productId: string) => {
     router.push(`/product/${productId}`)
@@ -47,22 +85,64 @@ export default function HomePage() {
     document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    // Implement newsletter signup logic here
+    setEmail('')
+  }
+
   return (
     <div className="min-h-screen bg-yellow-200">
       {/* Hero Section */}
-      <section className="bg-black text-white py-16 border-b-8 border-red-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 -rotate-12"></div>
-          <h1 className="text-6xl font-black mb-4 transform -rotate-2">MYSHOP</h1>
-          <p className="text-2xl font-bold bg-red-500 inline-block p-2 transform rotate-1">
+      <section className="bg-black text-white py-24 border-b-8 border-red-500 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h1 className="text-7xl font-black mb-6 transform -rotate-2">
+            WELCOME TO MYSHOP
+          </h1>
+          <p className="text-3xl font-bold bg-red-500 inline-block p-3 transform rotate-1 mb-8">
             Discover amazing products at great prices
           </p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => document.getElementById('new-arrivals')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-blue-500 text-white px-6 py-3 text-xl font-black border-4 border-white hover:transform hover:-rotate-2 transition-all"
+            >
+              NEW ARRIVALS
+            </button>
+            <button
+              onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-green-500 text-white px-6 py-3 text-xl font-black border-4 border-white hover:transform hover:rotate-2 transition-all"
+            >
+              BROWSE CATEGORIES
+            </button>
+          </div>
         </div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 -rotate-12 transform translate-x-24 -translate-y-24"></div>
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+        {/* New Arrivals Section */}
+        <section id="new-arrivals" className="bg-blue-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-black mb-8 transform -rotate-2">🆕 NEW ARRIVALS</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {newArrivals.map(product => (
+              <ProductCard key={product._id} product={product} categories={categories} />
+            ))}
+          </div>
+        </section>
+
+        {/* Popular Products Section */}
+        <section className="bg-green-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-black mb-8 transform -rotate-2">🔥 POPULAR NOW</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {popularProducts.map(product => (
+              <ProductCard key={product._id} product={product} categories={categories} />
+            ))}
+          </div>
+        </section>
+
         {/* Categories Grid Section */}
-        <section className="bg-blue-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <section id="categories" className="bg-blue-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <h2 className="text-3xl font-black mb-8 transform -rotate-2">SHOP BY CATEGORY</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {categories.map((category) => (
@@ -93,64 +173,105 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Spotlight Section */}
-        {spotlight && spotlight._id && (
-          <section
-            onClick={() => handleProductClick(spotlight._id)}
-            className="bg-gray-400 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 cursor-pointer"
-          >
-            <div className="p-8">
-              <h2 className="text-4xl font-black mb-6 flex items-center gap-2 transform -rotate-1">
-                <span className="text-5xl">🔥</span> SPOTLIGHT
-              </h2>
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                {spotlight.image && (
-                  <img
-                    src={spotlight.image}
-                    alt={spotlight.name}
-                    className="w-64 h-64 object-cover border-4 border-black transform rotate-2 hover:rotate-0 transition-all"
-                  />
-                )}
-                <div className="flex-1 bg-green-300 p-6 border-4 border-black transform -rotate-1">
-                  <h3 className="text-3xl font-black mb-2">{spotlight.name}</h3>
-                  <p className="text-4xl font-black text-red-600 mb-3 bg-yellow-300 inline-block p-2">
-                    ₺{spotlight.price}
-                  </p>
-                  <p className="inline-block bg-blue-400 px-4 py-2 font-bold text-white border-2 border-black">
-                    {getCategoryName(spotlight.category, categories)}
-                  </p>
-                  <p className="mt-4 text-lg font-bold">{spotlight.description}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Category Filter and Products */}
+        {/* Products Section with Filtering */}
         <section id="products-section" className="bg-pink-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-            <h2 className="text-3xl font-black transform -rotate-2">BROWSE PRODUCTS</h2>
-            <select
-              className="w-full sm:w-64 px-4 py-2 bg-white border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="">ALL CATEGORIES</option>
-              {categories.map(cat => (
-                <option key={cat._id} value={cat._id}>{cat.name.toUpperCase()}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProducts.map(product => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                categories={categories}
+          <div className="space-y-6">
+            {/* Search and Filters */}
+            <div className="flex flex-wrap gap-4">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 p-3 border-4 border-black font-bold"
               />
-            ))}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="p-3 border-4 border-black font-bold bg-white"
+              >
+                <option value="">Sort By</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Best Rated</option>
+                <option value="newest">Newest</option>
+              </select>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Min Price"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                  className="w-24 p-3 border-4 border-black font-bold"
+                />
+                <input
+                  type="number"
+                  placeholder="Max Price"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                  className="w-24 p-3 border-4 border-black font-bold"
+                />
+              </div>
+              <button
+                onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
+                className="p-3 bg-blue-400 text-white border-4 border-black font-bold"
+              >
+                {viewMode === 'grid' ? '📝 List View' : '📱 Grid View'}
+              </button>
+            </div>
+
+            {/* Products Grid/List */}
+            <div className={viewMode === 'grid'
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+              : "space-y-4"
+            }>
+              {paginatedProducts.map(product => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  categories={categories}
+                  viewMode={viewMode}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-center gap-2 mt-8">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i + 1)}
+                  className={`w-10 h-10 font-bold border-2 border-black ${page === i + 1 ? 'bg-blue-500 text-white' : 'bg-white'
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
+        </section>
+
+        {/* Newsletter Section */}
+        <section className="bg-yellow-300 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <form onSubmit={handleNewsletterSubmit} className="max-w-lg mx-auto">
+            <h2 className="text-3xl font-black mb-4">📫 SUBSCRIBE TO OUR NEWSLETTER</h2>
+            <div className="flex gap-4">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 p-3 border-4 border-black font-bold"
+                required
+              />
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-6 py-3 font-black border-4 border-black hover:bg-blue-600"
+              >
+                SUBSCRIBE
+              </button>
+            </div>
+          </form>
         </section>
       </div>
     </div>

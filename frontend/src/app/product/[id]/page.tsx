@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import FavoriteButton from '@/components/FavoriteButton'
 import { useCartStore } from '@/store/cartStore'
+import Image from 'next/image'
 
 export default function ProductDetailPage() {
     const router = useRouter()
@@ -162,24 +163,25 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="border-4 border-black bg-black p-4">
-                    <div className="relative">
-                        <img
+                    <div className="relative aspect-square w-full">
+                        <Image
                             src={product.images[currentImageIndex] || '/placeholder.jpg'}
                             alt={product.name}
-                            className="w-full h-[400px] object-cover border-4 border-black"
+                            fill
+                            className="object-cover border-4 border-black"
                         />
 
                         {product.images.length > 1 && (
                             <>
                                 <button
                                     onClick={handlePrevImage}
-                                    className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black"
+                                    className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
                                 >
                                     ◀
                                 </button>
                                 <button
                                     onClick={handleNextImage}
-                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black"
+                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
                                 >
                                     ▶
                                 </button>
@@ -190,14 +192,19 @@ export default function ProductDetailPage() {
                     {/* Thumbnail row */}
                     <div className="flex mt-4 gap-2 overflow-x-auto">
                         {product.images.map((img: string, index: number) => (
-                            <img
+                            <div
                                 key={index}
-                                src={img}
-                                alt={`Thumbnail ${index}`}
-                                className={`w-16 h-16 object-cover border-4 cursor-pointer ${currentImageIndex === index ? 'border-red-500' : 'border-gray-400'
+                                className={`relative w-16 aspect-square flex-shrink-0 cursor-pointer border-4 ${currentImageIndex === index ? 'border-red-500' : 'border-gray-400'
                                     }`}
                                 onClick={() => setCurrentImageIndex(index)}
-                            />
+                            >
+                                <Image
+                                    src={img}
+                                    alt={`Thumbnail ${index}`}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
                         ))}
                     </div>
                 </div>
