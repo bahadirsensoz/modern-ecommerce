@@ -1,9 +1,9 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
     const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying')
     const [message, setMessage] = useState('')
     const searchParams = useSearchParams()
@@ -46,5 +46,13 @@ export default function VerifyEmailPage() {
             {status === 'success' && <p className="text-green-600">{message}</p>}
             {status === 'error' && <p className="text-red-600">{message}</p>}
         </div>
+    )
+}
+
+export default function VerifyEmailPage() {
+    return (
+        <Suspense fallback={<div className="p-6">Loading...</div>}>
+            <VerifyEmailContent />
+        </Suspense>
     )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useCartStore } from '@/store/cartStore'
+import { CartItem } from '@/types'
 
 export default function CartHydration() {
     const { setCart } = useCartStore()
@@ -38,7 +39,7 @@ export default function CartHydration() {
                     return
                 }
 
-                const formattedItems = data.items.map((item: any) => ({
+                const formattedItems = data.items.map((item: CartItem) => ({
                     productId: item.product._id,
                     name: item.product.name,
                     price: item.product.price,

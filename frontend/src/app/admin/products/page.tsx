@@ -80,9 +80,9 @@ export default function AdminProductsPage() {
             setMessage('Product created successfully!')
 
             fetchProducts()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating product:', error)
-            setMessage(error.message || 'Failed to create product')
+            setMessage(error instanceof Error ? error.message : 'Failed to create product')
         }
     }
 

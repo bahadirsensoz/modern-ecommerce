@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { FaHeart, FaShoppingCart } from 'react-icons/fa'
 import { useCartStore } from '@/store/cartStore'
+import { CartItem } from '@/types'
 
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -68,11 +69,11 @@ export default function Navbar() {
 
                 if (cartRes.ok) {
                     const cartData = await cartRes.json()
-                    const cartItems = cartData.items?.map((item: any) => ({
+                    const cartItems = cartData.items?.map((item: CartItem) => ({
                         productId: item.product._id,
                         name: item.product.name,
                         price: item.product.price,
-                        image: item.product.images?.[0] || '/placeholder.jpg',
+                        image: item.product.image?.[0] || '/placeholder.jpg',
                         quantity: item.quantity
                     })) || []
                     setCart(cartItems)

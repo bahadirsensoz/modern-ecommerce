@@ -36,7 +36,12 @@ export default function CartPage() {
         removeFromCart(productId)
     }
 
-    const { subtotal, tax, shipping, total } = calculatePrices(items)
+    const { subtotal, tax, shipping, total } = calculatePrices(items.map(item => ({
+        productId: item.product._id,
+        price: item.product.price,
+        name: item.product.name,
+        quantity: item.quantity
+    })))
 
     return (
         <div className="max-w-4xl mx-auto p-4">
@@ -47,12 +52,12 @@ export default function CartPage() {
             ) : (
                 <div className="space-y-4">
                     {items.map((item) => (
-                        <div key={item.productId} className="flex justify-between items-center border p-2">
+                        <div key={item.product._id} className="flex justify-between items-center border p-2">
                             <div className="flex items-center gap-4">
-                                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover border" />
+                                <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover border" />
                                 <div>
-                                    <p className="font-bold">{item.name}</p>
-                                    <p>₺{item.price.toFixed(2)}</p>
+                                    <p className="font-bold">{item.product.name}</p>
+                                    <p>₺{item.product.price.toFixed(2)}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -61,12 +66,12 @@ export default function CartPage() {
                                     value={item.quantity}
                                     min={1}
                                     onChange={(e) =>
-                                        updateQuantity(item.productId, parseInt(e.target.value))
+                                        updateQuantity(item.product._id, parseInt(e.target.value))
                                     }
                                     className="w-12 border text-center"
                                 />
                                 <button
-                                    onClick={() => handleRemoveItem(item.productId)}
+                                    onClick={() => handleRemoveItem(item.product._id)}
                                     className="text-red-600 font-bold"
                                 >
                                     Remove

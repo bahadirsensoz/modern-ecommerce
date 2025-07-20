@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ApiError } from '@/types'
 
 const schema = z.object({
     email: z.string().email('Invalid email address'),
@@ -45,8 +46,8 @@ export default function RegisterPage() {
             window.dispatchEvent(new Event('auth-change'))
 
             router.push('/')
-        } catch (err: any) {
-            setMessage(err.message)
+        } catch (err: unknown) {
+            setMessage(err instanceof Error ? err.message : 'Registration failed')
         } finally {
             setLoading(false)
         }

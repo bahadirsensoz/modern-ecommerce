@@ -34,9 +34,12 @@ const OrderDetailsPage = () => {
                 )
                 setOrder(data)
                 setError('')
-            } catch (error: any) {
-                console.error('Failed to fetch order:', error.response?.data || error)
-                setError(error.response?.data?.message || 'Failed to load order')
+            } catch (error: unknown) {
+                const errorMessage = axios.isAxiosError(error)
+                    ? error.response?.data?.message || 'Failed to load order'
+                    : 'Failed to load order';
+                console.error('Failed to fetch order:', error)
+                setError(errorMessage)
             } finally {
                 setLoading(false)
             }
@@ -90,9 +93,9 @@ const OrderDetailsPage = () => {
             localStorage.setItem('cartCleared', 'true')
 
             setOrder(data.order)
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Payment failed:', error)
-            setError(error.response?.data?.message || 'Payment processing failed')
+            setError(axios.isAxiosError(error) ? error.response?.data?.message || 'Payment processing failed' : 'Payment processing failed')
         } finally {
             setPaymentLoading(false)
         }
