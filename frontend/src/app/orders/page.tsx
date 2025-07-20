@@ -26,9 +26,9 @@ const OrderHistoryPage = () => {
 
                 setOrders(data)
                 setError('')
-            } catch (err: any) {
+            } catch (err: Error | unknown) {
                 console.error('Failed to fetch orders:', err)
-                setError(err.response?.data?.message || 'Failed to fetch orders')
+                setError(err instanceof Error ? err.message : 'Failed to fetch orders')
             } finally {
                 setLoading(false)
             }
@@ -110,7 +110,7 @@ const OrderHistoryPage = () => {
 
             {orders.length === 0 && !loading && !error && (
                 <div className="text-center py-8 text-gray-600">
-                    <p>You haven't placed any orders yet.</p>
+                    <p>You haven&apos;t placed any orders yet.</p>
                     <Link
                         href="/products"
                         className="text-blue-600 hover:underline mt-2 inline-block"

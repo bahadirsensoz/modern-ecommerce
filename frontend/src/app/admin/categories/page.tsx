@@ -52,8 +52,8 @@ export default function AdminCategoriesPage() {
             } else {
                 setMessage(data.message || 'Failed to create category')
             }
-        } catch (error: any) {
-            setMessage(error.message || 'Failed to create category')
+        } catch (error) {
+            setMessage(error instanceof Error ? error.message : 'Failed to create category')
         }
     }
 

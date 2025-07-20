@@ -5,16 +5,7 @@ import { calculatePrices } from '@/utils/priceCalculations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-
-interface Address {
-    _id: string
-    label: string
-    street: string
-    city: string
-    postalCode: string
-    country: string
-    isDefault: boolean
-}
+import { Address } from '@/types'
 
 export default function CheckoutPage() {
     const router = useRouter()
@@ -63,7 +54,7 @@ export default function CheckoutPage() {
 
                 if (userData?.addresses && Array.isArray(userData.addresses)) {
                     setAddresses(userData.addresses)
-                    const defaultAddr = userData.addresses.find((addr: { isDefault: any }) => addr.isDefault)
+                    const defaultAddr = userData.addresses.find((addr: Address & { isDefault: boolean }) => addr.isDefault)
                     if (defaultAddr) {
                         setSelectedAddressId(defaultAddr._id)
                         setForm(prev => ({
@@ -100,7 +91,7 @@ export default function CheckoutPage() {
         }
 
         const selected = addresses.find(addr => addr._id === addressId)
-        if (selected) {
+        if (selected && selected._id) {
             setSelectedAddressId(selected._id)
             setForm(prev => ({
                 ...prev,
@@ -129,7 +120,12 @@ export default function CheckoutPage() {
 
         try {
             const token = localStorage.getItem('token')
-            const prices = calculatePrices(items)
+            const prices = calculatePrices(items.map(item => ({
+                productId: item.product._id,
+                price: item.product.price,
+                name: item.product.name,
+                quantity: item.quantity
+            })))
 
             const orderBody = {
                 email: form.email,
@@ -143,7 +139,7 @@ export default function CheckoutPage() {
                 },
                 paymentMethod: form.paymentMethod,
                 items: items.map(item => ({
-                    product: item.productId,
+                    product: item.product._id,
                     quantity: item.quantity,
                     size: item.size,
                     color: item.color
@@ -203,9 +199,9 @@ export default function CheckoutPage() {
 
             clearCart()
             router.push(`/orders/${responseData._id}`)
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Order error:', err)
-            setError(err.message || 'Failed to place order')
+            setError(err instanceof Error ? err.message : 'Failed to place order')
         } finally {
             setLoading(false)
         }
@@ -235,7 +231,7 @@ export default function CheckoutPage() {
                     paymentMethod: form.paymentMethod,
                     email: form.email,
                     items: items.map(item => ({
-                        product: item.productId,
+                        product: item.product._id,
                         quantity: item.quantity,
                         size: item.size,
                         color: item.color
@@ -254,9 +250,13 @@ export default function CheckoutPage() {
 
             clearCart()
             router.push(`/orders/${responseData._id}`)
-        } catch (error: any) {
+        } catch (error: Error | unknown) {
             console.error('Order placement failed:', error)
-            setError(error.response?.data?.message || 'Failed to place order')
+            if (axios.isAxiosError(error)) {
+                setError(error.response?.data?.message || 'Failed to place order')
+            } else {
+                setError('Failed to place order')
+            }
         } finally {
             setLoading(false)
         }
@@ -399,27 +399,47 @@ export default function CheckoutPage() {
                 <div className="mt-6 border-t pt-4 space-y-2">
                     <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
                     {items.map(item => (
-                        <div key={item.productId} className="flex justify-between">
-                            <span>{item.name} x {item.quantity}</span>
-                            <span>${(item.price * item.quantity).toFixed(2)}</span>
+                        <div key={item.product._id} className="flex justify-between">
+                            <span>{item.product.name} x {item.quantity}</span>
+                            <span>${(item.product.price * item.quantity).toFixed(2)}</span>
                         </div>
                     ))}
                     <div className="border-t mt-4 pt-4 space-y-2">
                         <div className="flex justify-between">
                             <span>Subtotal:</span>
-                            <span>${calculatePrices(items).subtotal.toFixed(2)}</span>
+                            <span>${calculatePrices(items.map(item => ({
+                                productId: item.product._id,
+                                price: item.product.price,
+                                name: item.product.name,
+                                quantity: item.quantity
+                            }))).subtotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Tax (18%):</span>
-                            <span>${calculatePrices(items).tax.toFixed(2)}</span>
+                            <span>${calculatePrices(items.map(item => ({
+                                productId: item.product._id,
+                                price: item.product.price,
+                                name: item.product.name,
+                                quantity: item.quantity
+                            }))).tax.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Shipping:</span>
-                            <span>${calculatePrices(items).shipping.toFixed(2)}</span>
+                            <span>${calculatePrices(items.map(item => ({
+                                productId: item.product._id,
+                                price: item.product.price,
+                                name: item.product.name,
+                                quantity: item.quantity
+                            }))).shipping.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between font-bold text-lg border-t pt-2">
                             <span>Total:</span>
-                            <span>${calculatePrices(items).total.toFixed(2)}</span>
+                            <span>${calculatePrices(items.map(item => ({
+                                productId: item.product._id,
+                                price: item.product.price,
+                                name: item.product.name,
+                                quantity: item.quantity
+                            }))).total.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>

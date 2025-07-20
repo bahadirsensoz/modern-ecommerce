@@ -1,15 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-
-interface CartItem {
-    productId: string
-    name: string
-    price: number
-    image: string
-    quantity: number
-    size?: string
-    color?: string
-}
+import { Cart, CartItem } from '@/types'
 
 interface CartStore {
     items: CartItem[]
@@ -37,7 +28,7 @@ export const useCartStore = create<CartStore>()(
                             },
                             credentials: 'include',
                             body: JSON.stringify({
-                                productId: newItem.productId,
+                                productId: newItem.product._id,
                                 quantity: newItem.quantity,
                                 size: newItem.size,
                                 color: newItem.color
@@ -48,11 +39,13 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems = data.items.map((item: any) => ({
-                                productId: item.product._id,
-                                name: item.product.name,
-                                price: item.product.price,
-                                image: item.product.images?.[0] || item.product.image,
+                            const formattedItems: CartItem[] = data.items.map((item: CartItem) => ({
+                                product: {
+                                    _id: item.product._id,
+                                    name: item.product.name,
+                                    price: item.product.price,
+                                    image: item.product.image?.[0] || item.product.image
+                                },
                                 quantity: item.quantity,
                                 size: item.size,
                                 color: item.color
@@ -67,7 +60,7 @@ export const useCartStore = create<CartStore>()(
                     set((state) => {
                         const existingItemIndex = state.items.findIndex(
                             item =>
-                                item.productId === newItem.productId &&
+                                item.product._id === newItem.product._id &&
                                 item.size === newItem.size &&
                                 item.color === newItem.color
                         )
@@ -91,8 +84,7 @@ export const useCartStore = create<CartStore>()(
                             headers: {
                                 'Content-Type': 'application/json',
                                 Authorization: `Bearer ${token}`
-                            },
-                            credentials: 'include',
+                            }, credentials: 'include',
                             body: JSON.stringify({ productId })
                         })
 
@@ -104,11 +96,11 @@ export const useCartStore = create<CartStore>()(
                         }
 
                         if (data?.items) {
-                            const formattedItems = data.items.map((item: any) => ({
+                            const formattedItems = data.items.map((item: CartItem) => ({
                                 productId: item.product._id,
                                 name: item.product.name,
                                 price: item.product.price,
-                                image: item.product.images?.[0] || item.product.image,
+                                image: item.product.image?.[0] || item.product.image,
                                 quantity: item.quantity,
                                 size: item.size,
                                 color: item.color
@@ -118,17 +110,17 @@ export const useCartStore = create<CartStore>()(
                         }
 
                         set((state) => ({
-                            items: state.items.filter(item => item.productId !== productId)
+                            items: state.items.filter(item => item.product._id !== productId)
                         }))
                     } catch (error) {
                         console.error('Failed to remove item:', error)
                         set((state) => ({
-                            items: state.items.filter(item => item.productId !== productId)
+                            items: state.items.filter(item => item.product._id !== productId)
                         }))
                     }
                 } else {
                     set((state) => ({
-                        items: state.items.filter(item => item.productId !== productId)
+                        items: state.items.filter(item => item.product._id !== productId)
                     }))
                 }
             },
@@ -151,11 +143,11 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems = data.items.map((item: any) => ({
+                            const formattedItems = data.items.map((item: CartItem) => ({
                                 productId: item.product._id,
                                 name: item.product.name,
                                 price: item.product.price,
-                                image: item.product.images?.[0] || item.product.image,
+                                image: item.product.image?.[0] || item.product.image,
                                 quantity: item.quantity,
                                 size: item.size,
                                 color: item.color
@@ -169,7 +161,7 @@ export const useCartStore = create<CartStore>()(
                 } else {
                     set((state) => ({
                         items: state.items.map(item =>
-                            item.productId === productId ? { ...item, quantity } : item
+                            item.product._id === productId ? { ...item, quantity } : item
                         )
                     }))
                 }

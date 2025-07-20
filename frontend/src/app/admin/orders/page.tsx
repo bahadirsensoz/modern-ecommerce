@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import AdminGuard from '@/components/guards/AdminGuard'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
+import { Order, OrderItem } from '@/types'
+
 
 const orderStatuses = ['pending', 'processing', 'shipped', 'delivered']
 
 export default function AdminOrdersPage() {
-    const [orders, setOrders] = useState<any[]>([])
+    const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string>('')
 
@@ -31,8 +33,8 @@ export default function AdminOrdersPage() {
                 }
             })
             setOrders(data)
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to fetch orders'
+        } catch (error: unknown) {
+            const message = axios.isAxiosError(error) ? error.response?.data?.message || error.message : error instanceof Error ? error.message : 'Failed to fetch orders'
             console.error('Failed to fetch orders:', message)
             setError(message)
         } finally {
@@ -53,8 +55,8 @@ export default function AdminOrdersPage() {
                 }
             )
             fetchOrders()
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to update status'
+        } catch (error: unknown) {
+            const message = axios.isAxiosError(error) ? error.response?.data?.message || error.message : error instanceof Error ? error.message : 'Failed to update status'
             console.error('Failed to update order status:', message)
             setError(message)
         }
@@ -88,7 +90,7 @@ export default function AdminOrdersPage() {
                                     onChange={(e) => updateOrderStatus(order._id, e.target.value)}
                                     className="p-2 border-4 border-black font-bold"
                                 >
-                                    {orderStatuses.map(status => (
+                                    {orderStatuses.map((status) => (
                                         <option key={status} value={status}>
                                             {status.toUpperCase()}
                                         </option>
@@ -97,7 +99,7 @@ export default function AdminOrdersPage() {
                             </div>
 
                             <div className="space-y-2">
-                                {order.orderItems.map((item: any) => (
+                                {order.orderItems.map((item: OrderItem) => (
                                     <div key={item._id} className="flex justify-between items-center border-t pt-2">
                                         <span>{item.product.name} x {item.quantity}</span>
                                         <span className="font-bold">${item.product.price * item.quantity}</span>

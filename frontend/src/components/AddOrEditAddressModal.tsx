@@ -1,9 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Address } from '@/types'
+
+interface EditAddressData extends Omit<Address, '_id'> {
+  index?: number
+}
 
 const addressSchema = z.object({
   label: z.string().min(2, 'Label is required'),
@@ -11,20 +15,22 @@ const addressSchema = z.object({
   city: z.string().min(2, 'City is required'),
   country: z.string().min(2, 'Country is required'),
   postalCode: z.string().min(3, 'Postal code is required'),
-  isDefault: z.boolean().optional()
+  isDefault: z.boolean()
 })
 
 type AddressFormData = z.infer<typeof addressSchema>
+
+interface AddOrEditAddressModalProps {
+  initialData: EditAddressData | null
+  onClose: () => void
+  onSave: (data: AddressFormData) => void
+}
 
 export default function AddOrEditAddressModal({
   initialData,
   onClose,
   onSave
-}: {
-  initialData: any
-  onClose: () => void
-  onSave: (data: AddressFormData) => void
-}) {
+}: AddOrEditAddressModalProps) {
   const {
     register,
     handleSubmit,

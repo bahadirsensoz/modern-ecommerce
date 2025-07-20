@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AddOrEditAddressModal from '@/components/AddOrEditAddressModal'
+import { Address } from '@/types'
 
 export default function AddressesPage() {
     const router = useRouter()
-    const [addresses, setAddresses] = useState<any[]>([])
-    const [selected, setSelected] = useState<any | null>(null)
+    const [addresses, setAddresses] = useState<Address[]>([])
+    const [selected, setSelected] = useState<(Address & { index?: number }) | null>(null)
     const [showModal, setShowModal] = useState(false)
 
     const fetchAddresses = async () => {
@@ -28,7 +29,7 @@ export default function AddressesPage() {
         fetchAddresses()
     }, [])
 
-    const saveAddresses = async (newAddresses: any[]) => {
+    const saveAddresses = async (newAddresses: Address[]) => {
         try {
             const token = localStorage.getItem('token')
             if (!token) {
@@ -95,8 +96,12 @@ export default function AddressesPage() {
         setShowModal(true)
     }
 
-    const handleSave = async (newData: any) => {
+    const handleSave = async (newData: { label: string; street: string; city: string; country: string; postalCode: string; isDefault?: boolean }) => {
         const updated = [...addresses]
+        const dataWithDefault = {
+            ...newData,
+            isDefault: newData.isDefault ?? false
+        }
 
         if (selected && typeof selected.index === 'number') {
             updated[selected.index] = {

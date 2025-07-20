@@ -5,11 +5,17 @@ import { useParams, useRouter } from 'next/navigation'
 import FavoriteButton from '@/components/FavoriteButton'
 import { useCartStore } from '@/store/cartStore'
 import Image from 'next/image'
+import { Product, Review, ApiError, CartItem } from '@/types'
+
+interface ProductVariant {
+    size?: string
+    color?: string
+}
 
 export default function ProductDetailPage() {
     const router = useRouter()
     const { id } = useParams()
-    const [product, setProduct] = useState<any>(null)
+    const [product, setProduct] = useState<Product | null>(null)
     const [selectedSize, setSelectedSize] = useState('')
     const [selectedColor, setSelectedColor] = useState('')
     const [comment, setComment] = useState('')
@@ -19,23 +25,13 @@ export default function ProductDetailPage() {
     const [isEditing, setIsEditing] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-
     const fetchProduct = async () => {
-        const res = await fetch(`http://localhost:5000/api/products/${id}`)
-        const data = await res.json()
-        setProduct(data)
-    }
-
-
-    const handleNextImage = () => {
-        if (product.images.length > 1) {
-            setCurrentImageIndex((prev) => (prev + 1) % product.images.length)
-        }
-    }
-
-    const handlePrevImage = () => {
-        if (product.images.length > 1) {
-            setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length)
+        try {
+            const res = await fetch(`http://localhost:5000/api/products/${id}`)
+            const data = await res.json()
+            setProduct(data)
+        } catch (error) {
+            console.error('Failed to fetch product:', error)
         }
     }
 
@@ -43,11 +39,15 @@ export default function ProductDetailPage() {
         const token = localStorage.getItem('token')
         if (!token) return
 
-        const res = await fetch('http://localhost:5000/api/users/me', {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        const user = await res.json()
-        setUserId(user._id)
+        try {
+            const res = await fetch('http://localhost:5000/api/users/me', {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const user = await res.json()
+            setUserId(user._id)
+        } catch (error) {
+            console.error('Failed to fetch user:', error)
+        }
     }
 
     useEffect(() => {
@@ -57,20 +57,31 @@ export default function ProductDetailPage() {
 
     useEffect(() => {
         if (!product || !userId) return
-        const existingReview = product.reviews.find((r: any) => r.user === userId)
+        const existingReview = product.reviews.find(r =>
+            (typeof r.user === 'string' ? r.user : r.user._id) === userId
+        )
         if (existingReview) {
             setComment(existingReview.comment)
             setRating(existingReview.rating)
         }
     }, [product, userId])
 
-    const handleEditClick = (review: any) => {
-        setComment(review.comment)
-        setRating(review.rating)
-        setIsEditing(true)
-        document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth' })
+    // Image navigation handlers
+    const handleNextImage = () => {
+        if (product && product.images && product.images.length > 1) {
+            setCurrentImageIndex(prev => (prev + 1) % (product?.images?.length || 1))
+        }
     }
 
+    const handlePrevImage = () => {
+        if (product && product.images && product.images.length > 1) {
+            setCurrentImageIndex(prev =>
+                (prev - 1 + product.images.length) % product.images.length
+            )
+        }
+    }
+
+    // Review handlers
     const handleReviewSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setMessage('')
@@ -100,17 +111,15 @@ export default function ProductDetailPage() {
             setProduct(data)
             setMessage('Review submitted successfully!')
             setIsEditing(false)
-            setComment('')
-            setRating(5)
-        } catch (error: any) {
-            setMessage(error.message || 'An error occurred while submitting the review.')
+            resetReviewForm()
+        } catch (error) {
+            setMessage((error as Error).message || 'Failed to submit review')
         }
     }
 
     const handleDeleteReview = async () => {
         if (!confirm('Are you sure you want to delete this review?')) return
 
-        setMessage('')
         try {
             const token = localStorage.getItem('token')
             if (!token) {
@@ -133,20 +142,55 @@ export default function ProductDetailPage() {
 
             const data = await res.json()
             setProduct(data)
-            setComment('')
-            setRating(5)
+            resetReviewForm()
             setMessage('Review deleted successfully!')
-        } catch (error: any) {
-            setMessage(error.message || 'Error while deleting review')
+        } catch (error) {
+            setMessage((error as ApiError).message || 'Error while deleting review')
         }
     }
 
+    const resetReviewForm = () => {
+        setComment('')
+        setRating(5)
+        setIsEditing(false)
+    }
+
+    const handleEditClick = (review: Review) => {
+        setComment(review.comment)
+        setRating(review.rating)
+        setIsEditing(true)
+    }
+
+    const handleAddToCart = async () => {
+        if (!product) return
+
+        const cartItem: CartItem = {
+            product: {
+                _id: product._id,
+                name: product.name,
+                price: product.price,
+                image: product.images[0]
+            },
+            quantity: 1,
+            ...(selectedSize && { size: selectedSize }),
+            ...(selectedColor && { color: selectedColor })
+        }
+
+        try {
+            await useCartStore.getState().addItem(cartItem)
+            alert('Added to cart!')
+        } catch (error) {
+            console.error('Add to cart error:', error)
+            alert((error as Error).message || 'Failed to add to cart')
+        }
+    }
+
+    // Calculate average rating from approved reviews
     const averageRating = product?.reviews?.length
-        ? (
-            product.reviews
-                .filter((r: any) => r.isApproved)
-                .reduce((acc: number, cur: any) => acc + cur.rating, 0) /
-            product.reviews.filter((r: any) => r.isApproved).length
+        ? (product.reviews
+            .filter(r => r.isApproved)
+            .reduce((acc, cur) => acc + cur.rating, 0) /
+            product.reviews.filter(r => r.isApproved).length
         ).toFixed(1)
         : null
 
@@ -233,7 +277,7 @@ export default function ProductDetailPage() {
                             <div className="mb-2">
                                 <label className="font-black">Size:</label>
                                 <div className="flex gap-2 mt-1">
-                                    {Array.from(new Set<string>(product.variants.map((v: any) => v.size))).map((size) => (
+                                    {Array.from(new Set<string>(product.variants.map((v: ProductVariant) => v.size).filter((size): size is string => size !== undefined))).map((size) => (
                                         <button
                                             key={size}
                                             onClick={() => setSelectedSize(size)}
@@ -247,7 +291,7 @@ export default function ProductDetailPage() {
                             <div className="mb-2">
                                 <label className="font-black">Color:</label>
                                 <div className="flex gap-2 mt-1">
-                                    {[...new Set(product.variants.map((v: any) => v.color))].map((color: unknown) => (
+                                    {[...new Set(product.variants.map((v: ProductVariant) => v.color))].map((color: string | undefined) => (
                                         <button
                                             key={color as string}
                                             onClick={() => setSelectedColor(color as string)}
@@ -262,11 +306,13 @@ export default function ProductDetailPage() {
                     )}
                     <button
                         onClick={async () => {
-                            const newItem = {
-                                productId: product._id,
-                                name: product.name,
-                                price: product.price,
-                                image: product.images[0],
+                            const newItem: CartItem = {
+                                product: {
+                                    _id: product._id,
+                                    name: product.name,
+                                    price: product.price,
+                                    image: product.images[0]
+                                },
                                 quantity: 1,
                                 ...(selectedSize && { size: selectedSize }),
                                 ...(selectedColor && { color: selectedColor })
@@ -275,9 +321,9 @@ export default function ProductDetailPage() {
                             try {
                                 await useCartStore.getState().addItem(newItem)
                                 alert('Added to cart!')
-                            } catch (error: any) {
+                            } catch (error) {
                                 console.error('Add to cart error:', error)
-                                alert(error.message || 'Failed to add to cart')
+                                alert((error as Error).message || 'Failed to add to cart')
                             }
                         }}
                         disabled={product.variants?.length > 0 && (!selectedSize || !selectedColor)}
@@ -301,7 +347,7 @@ export default function ProductDetailPage() {
                 <h2 className="text-3xl font-black mb-6">CUSTOMER REVIEWS</h2>
 
                 {/* Show message if review is pending approval */}
-                {product.reviews.some((r: any) => r.user === userId && !r.isApproved) && (
+                {product.reviews.some((r: Review) => (typeof r.user === 'string' ? r.user : r.user._id) === userId && !r.isApproved) && (
                     <div className="bg-blue-200 border-4 border-black p-4 mb-4 font-bold">
                         Your review is pending approval. It will be visible once approved by an admin.
                     </div>
@@ -309,8 +355,8 @@ export default function ProductDetailPage() {
 
                 {/* Only show approved reviews */}
                 {product.reviews
-                    .filter((review: any) => review.isApproved)
-                    .map((review: any, idx: number) => (
+                    .filter((review: Review) => review.isApproved)
+                    .map((review: Review, idx: number) => (
                         <div key={idx} className="bg-gray-500 border-4 border-black p-4 mb-4">
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
@@ -325,7 +371,7 @@ export default function ProductDetailPage() {
                             </div>
                             <p className="font-bold mb-2">{review.comment}</p>
 
-                            {userId === review.user && (
+                            {userId === review.user._id && (
                                 <div className="flex gap-2 mt-2">
                                     <button
                                         onClick={() => handleEditClick(review)}
@@ -345,7 +391,7 @@ export default function ProductDetailPage() {
                     ))}
 
                 {/* Show message if no approved reviews */}
-                {product.reviews.filter((r: any) => r.isApproved).length === 0 && (
+                {product.reviews.filter((r: Review) => r.isApproved).length === 0 && (
                     <div className="bg-gray-200 border-4 border-black p-4 text-center font-bold">
                         No reviews yet. Be the first to review this product!
                     </div>
