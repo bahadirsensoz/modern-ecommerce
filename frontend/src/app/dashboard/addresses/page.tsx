@@ -14,7 +14,7 @@ export default function AddressesPage() {
     const fetchAddresses = async () => {
         try {
             const token = localStorage.getItem('token')
-            const res = await fetch('http://localhost:5000/api/users/me', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
                 headers: { Authorization: `Bearer ${token}` },
             })
             if (!res.ok) throw new Error('Failed to fetch addresses')
@@ -45,7 +45,7 @@ export default function AddressesPage() {
                 isDefault: Boolean(addr.isDefault)
             }))
 
-            const res = await fetch('http://localhost:5000/api/users/me/addresses', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/addresses`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

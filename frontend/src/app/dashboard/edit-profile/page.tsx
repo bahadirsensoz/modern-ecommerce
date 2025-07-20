@@ -18,7 +18,7 @@ export default function EditProfilePage() {
         const token = localStorage.getItem('token')
         if (!token) return router.push('/login')
 
-        fetch('http://localhost:5000/api/users/me', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
@@ -38,7 +38,7 @@ export default function EditProfilePage() {
         setSuccess('')
 
         const token = localStorage.getItem('token')
-        const res = await fetch('http://localhost:5000/api/users/me', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

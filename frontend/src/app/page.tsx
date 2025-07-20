@@ -21,14 +21,16 @@ export default function HomePage() {
   const [page, setPage] = useState(1)
   const ITEMS_PER_PAGE = 9
 
+  console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)
+
   const fetchProducts = async () => {
-    const res = await fetch('http://localhost:5000/api/products')
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
     const data = await res.json()
     setProducts(data)
   }
 
   const fetchCategories = async () => {
-    const res = await fetch('http://localhost:5000/api/categories')
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
     const data = await res.json()
     setCategories(data)
   }

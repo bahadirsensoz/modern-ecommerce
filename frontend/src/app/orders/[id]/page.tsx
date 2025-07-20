@@ -23,7 +23,7 @@ const OrderDetailsPage = () => {
 
             try {
                 const { data } = await axios.get<Order>(
-                    `http://localhost:5000/api/orders/${id}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`,
                     {
                         headers: {
                             ...(token && { Authorization: `Bearer ${token}` }),
@@ -59,7 +59,7 @@ const OrderDetailsPage = () => {
             const sessionId = localStorage.getItem('sessionId')
 
             const { data } = await axios.post(
-                `http://localhost:5000/api/orders/${id}/pay`,
+                `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/pay`,
                 {},
                 {
                     headers: {
@@ -73,7 +73,7 @@ const OrderDetailsPage = () => {
             if (token || sessionId) {
                 try {
                     await axios.post(
-                        'http://localhost:5000/api/cart/clear',
+                        `${process.env.NEXT_PUBLIC_API_URL}/cart/clear`,
                         {},
                         {
                             headers: {

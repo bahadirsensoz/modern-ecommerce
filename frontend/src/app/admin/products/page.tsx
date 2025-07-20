@@ -23,13 +23,13 @@ export default function AdminProductsPage() {
     }, [])
 
     const fetchProducts = async () => {
-        const res = await fetch('http://localhost:5000/api/products')
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
         const data = await res.json()
         setProducts(data)
     }
 
     const fetchCategories = async () => {
-        const res = await fetch('http://localhost:5000/api/categories')
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
         const data = await res.json()
         setCategories(data)
     }
@@ -58,7 +58,7 @@ export default function AdminProductsPage() {
                 })
             }
 
-            const response = await fetch('http://localhost:5000/api/products', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -88,7 +88,7 @@ export default function AdminProductsPage() {
 
     const handleDelete = async (id: string) => {
         const token = localStorage.getItem('token')
-        await fetch(`http://localhost:5000/api/products/${id}`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
             method: 'DELETE',
             headers: {
                 Authorization: `Bearer ${token}`,

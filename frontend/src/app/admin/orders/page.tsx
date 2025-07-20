@@ -27,7 +27,7 @@ export default function AdminOrdersPage() {
                 throw new Error('No authentication token found')
             }
 
-            const { data } = await axios.get('http://localhost:5000/api/orders/all', {
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/all`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -46,7 +46,7 @@ export default function AdminOrdersPage() {
         try {
             const token = localStorage.getItem('token')
             await axios.put(
-                `http://localhost:5000/api/orders/${orderId}/status`,
+                `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`,
                 { status },
                 {
                     headers: {

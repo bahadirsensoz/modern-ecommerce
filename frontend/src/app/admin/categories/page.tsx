@@ -13,7 +13,7 @@ export default function AdminCategoriesPage() {
     const [message, setMessage] = useState('')
 
     const fetchCategories = async () => {
-        const res = await fetch('http://localhost:5000/api/categories')
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
         const data = await res.json()
         setCategories(data)
     }
@@ -34,7 +34,7 @@ export default function AdminCategoriesPage() {
             }
 
             const token = localStorage.getItem('token')
-            const res = await fetch('http://localhost:5000/api/categories', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -58,7 +58,7 @@ export default function AdminCategoriesPage() {
     }
 
     const handleDelete = async (id: string) => {
-        await fetch(`http://localhost:5000/api/categories/${id}`, { method: 'DELETE' })
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${id}`, { method: 'DELETE' })
         fetchCategories()
     }
 

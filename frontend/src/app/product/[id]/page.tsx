@@ -27,7 +27,7 @@ export default function ProductDetailPage() {
 
     const fetchProduct = async () => {
         try {
-            const res = await fetch(`http://localhost:5000/api/products/${id}`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`)
             const data = await res.json()
             setProduct(data)
         } catch (error) {
@@ -40,7 +40,7 @@ export default function ProductDetailPage() {
         if (!token) return
 
         try {
-            const res = await fetch('http://localhost:5000/api/users/me', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
             const user = await res.json()
@@ -93,7 +93,7 @@ export default function ProductDetailPage() {
                 return
             }
 
-            const res = await fetch(`http://localhost:5000/api/products/${id}/reviews`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}/reviews`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ export default function ProductDetailPage() {
                 return
             }
 
-            const res = await fetch(`http://localhost:5000/api/products/${id}/reviews`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}/reviews`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`,
