@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { Category } from '../models/Category'
-import { v2 as cloudinary } from 'cloudinary'
+import cloudinary, { uploadImage } from '../config/cloudinary'
 
 export const getCategories = async (_: Request, res: Response) => {
     const categories = await Category.find().sort({ sortOrder: 1 })
@@ -9,24 +9,42 @@ export const getCategories = async (_: Request, res: Response) => {
 
 export const createCategory = async (req: Request, res: Response) => {
     try {
+        console.log('Creating category with body:', req.body)
+        console.log('File received:', req.file)
+
+        if (!req.body?.name) {
+            return res.status(400).json({
+                message: 'Name is required'
+            })
+        }
+
         let imageUrl = ''
 
         if (req.file) {
-            const result = await cloudinary.uploader.upload(req.file.path, {
-                folder: 'categories'
-            })
-            imageUrl = result.secure_url
+            try {
+                imageUrl = await uploadImage(req.file)
+                console.log('✅ Image uploaded:', imageUrl)
+            } catch (uploadError) {
+                console.error('❌ Image upload failed:', uploadError)
+            }
         }
 
         const category = new Category({
-            ...req.body,
+            name: req.body.name,
+            description: req.body.description || '',
             image: imageUrl
         })
 
         await category.save()
+        console.log('✅ Category saved:', category)
+
         res.status(201).json(category)
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to create category' })
+    } catch (error: any) {
+        console.error('❌ Create category error:', error)
+        res.status(500).json({
+            message: 'Failed to create category',
+            error: error.message
+        })
     }
 }
 

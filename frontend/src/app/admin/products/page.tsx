@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Category, Product } from '@/types'
 import { getCategoryName } from '@/utils/getCategoryName'
 import AdminGuard from '@/components/guards/AdminGuard'
+import Image from 'next/image'
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([])
@@ -12,6 +13,7 @@ export default function AdminProductsPage() {
     const [description, setDescription] = useState('')
     const [price, setPrice] = useState('')
     const [image, setImage] = useState('')
+    const [imageFiles, setImageFiles] = useState<FileList | null>(null)
     const [categoryId, setCategoryId] = useState('')
     const [message, setMessage] = useState('')
 
@@ -34,34 +36,53 @@ export default function AdminProductsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        const token = localStorage.getItem('token')
+        setMessage('')
 
-        const res = await fetch('http://localhost:5000/api/products', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                name,
-                description,
-                price: parseFloat(price),
-                image,
-                category: categoryId,
-            }),
-        })
+        try {
+            if (!name.trim() || !price || !categoryId) {
+                setMessage('Name, price and category are required!')
+                return
+            }
 
-        const data = await res.json()
-        if (res.ok) {
-            setMessage('Product created!')
+            const token = localStorage.getItem('token')
+            const formData = new FormData()
+
+            formData.append('name', name.trim())
+            formData.append('description', description.trim())
+            formData.append('price', price)
+            formData.append('category', categoryId)
+
+            if (imageFiles) {
+                Array.from(imageFiles).forEach(file => {
+                    formData.append('images', file)
+                })
+            }
+
+            const response = await fetch('http://localhost:5000/api/products', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to create product')
+            }
+
             setName('')
             setDescription('')
             setPrice('')
-            setImage('')
             setCategoryId('')
+            setImageFiles(null)
+            setMessage('Product created successfully!')
+
             fetchProducts()
-        } else {
-            setMessage(`${data.message}`)
+        } catch (error: any) {
+            console.error('Error creating product:', error)
+            setMessage(error.message || 'Failed to create product')
         }
     }
 
@@ -102,13 +123,15 @@ export default function AdminProductsPage() {
                             onChange={(e) => setPrice(e.target.value)}
                             placeholder="Price"
                             type="number"
+                            step="0.01"
+                            min="0"
                             className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
                             required
                         />
                         <input
-                            value={image}
-                            onChange={(e) => setImage(e.target.value)}
-                            placeholder="Image URL"
+                            type="file"
+                            multiple
+                            onChange={(e) => setImageFiles(e.target.files)}
                             className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
                         />
                         <select
@@ -140,15 +163,27 @@ export default function AdminProductsPage() {
                             key={product._id}
                             className="bg-white p-4 border-4 border-black flex justify-between items-center hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
                         >
-                            <div>
-                                <p className="font-black text-xl">{product.name}</p>
-                                <p className="font-bold">
-                                    <span className="bg-yellow-300 px-2">₺{product.price}</span>
-                                    {" — "}
-                                    <span className="bg-blue-400 text-white px-2">
-                                        {getCategoryName(product.category, categories)}
-                                    </span>
-                                </p>
+                            <div className="flex items-center gap-4">
+                                {product.images && product.images[0] && (
+                                    <div className="relative w-20 h-20 border-2 border-black">
+                                        <Image
+                                            src={product.images[0]}
+                                            alt={product.name}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="font-black text-xl">{product.name}</p>
+                                    <p className="font-bold">
+                                        <span className="bg-yellow-300 px-2">₺{product.price}</span>
+                                        {" — "}
+                                        <span className="bg-blue-400 text-white px-2">
+                                            {getCategoryName(product.category, categories)}
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
                             <button
                                 onClick={() => handleDelete(product._id)}
@@ -163,3 +198,7 @@ export default function AdminProductsPage() {
         </AdminGuard>
     )
 }
+function fetchProducts() {
+    throw new Error('Function not implemented.')
+}
+

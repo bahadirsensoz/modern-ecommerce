@@ -142,8 +142,10 @@ export default function ProductDetailPage() {
 
     const averageRating = product?.reviews?.length
         ? (
-            product.reviews.reduce((acc: number, cur: any) => acc + cur.rating, 0) /
-            product.reviews.length
+            product.reviews
+                .filter((r: any) => r.isApproved)
+                .reduce((acc: number, cur: any) => acc + cur.rating, 0) /
+            product.reviews.filter((r: any) => r.isApproved).length
         ).toFixed(1)
         : null
 
@@ -291,39 +293,56 @@ export default function ProductDetailPage() {
             <div className="mt-12 bg-yellow-200 border-4 border-black p-6">
                 <h2 className="text-3xl font-black mb-6">CUSTOMER REVIEWS</h2>
 
-                {product.reviews.map((review: any, idx: number) => (
-                    <div key={idx} className="bg-gray-500 border-4 border-black p-4 mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <p className="font-black text-xl">{'⭐'.repeat(review.rating)}</p>
-                                <p className="text-sm font-bold bg-pink-400 px-2 py-1 border-2 border-black">
-                                    {new Date(review.createdAt).toLocaleDateString()}
+                {/* Show message if review is pending approval */}
+                {product.reviews.some((r: any) => r.user === userId && !r.isApproved) && (
+                    <div className="bg-blue-200 border-4 border-black p-4 mb-4 font-bold">
+                        Your review is pending approval. It will be visible once approved by an admin.
+                    </div>
+                )}
+
+                {/* Only show approved reviews */}
+                {product.reviews
+                    .filter((review: any) => review.isApproved)
+                    .map((review: any, idx: number) => (
+                        <div key={idx} className="bg-gray-500 border-4 border-black p-4 mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <p className="font-black text-xl">{'⭐'.repeat(review.rating)}</p>
+                                    <p className="text-sm font-bold bg-pink-400 px-2 py-1 border-2 border-black">
+                                        {new Date(review.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <p className="font-bold text-sm bg-blue-400 px-2 py-1 border-2 border-black">
+                                    {review.user?.firstName} {review.user?.lastName?.charAt(0)}.
                                 </p>
                             </div>
-                            <p className="font-bold text-sm bg-blue-400 px-2 py-1 border-2 border-black">
-                                {review.user?.firstName} {review.user?.lastName?.charAt(0)}.
-                            </p>
-                        </div>
-                        <p className="font-bold mb-2">{review.comment}</p>
+                            <p className="font-bold mb-2">{review.comment}</p>
 
-                        {userId === review.user && (
-                            <div className="flex gap-2 mt-2">
-                                <button
-                                    onClick={() => handleEditClick(review)}
-                                    className="text-sm px-2 py-1 bg-yellow-400 border-2 border-black font-black"
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={handleDeleteReview}
-                                    className="text-sm px-2 py-1 bg-red-400 border-2 border-black font-black"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        )}
+                            {userId === review.user && (
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        onClick={() => handleEditClick(review)}
+                                        className="text-sm px-2 py-1 bg-yellow-400 border-2 border-black font-black"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={handleDeleteReview}
+                                        className="text-sm px-2 py-1 bg-red-400 border-2 border-black font-black"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+
+                {/* Show message if no approved reviews */}
+                {product.reviews.filter((r: any) => r.isApproved).length === 0 && (
+                    <div className="bg-gray-200 border-4 border-black p-4 text-center font-bold">
+                        No reviews yet. Be the first to review this product!
                     </div>
-                ))}
+                )}
 
                 {/* Review form */}
                 <div id="review-form" className="mt-8 bg-blue-300 border-4 border-black p-6">

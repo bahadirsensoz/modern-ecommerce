@@ -8,6 +8,7 @@ export type Product = {
     category?: string | { _id: string; name: string }
     image?: string
     images: string[]
+    reviews: Review[]
 }
 
 export type Category = {
@@ -55,5 +56,18 @@ export interface Order {
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
     isPaid: boolean
     paidAt?: string
+    createdAt: string
+}
+
+export interface Review {
+    _id: string
+    user: {
+        _id: string
+        firstName: string
+        lastName: string
+    }
+    rating: number
+    comment: string
+    isApproved: boolean
     createdAt: string
 }

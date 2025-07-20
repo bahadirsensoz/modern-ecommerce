@@ -6,6 +6,7 @@ import { getCategoryName } from '@/utils/getCategoryName'
 import { matchCategory } from '@/utils/matchCategory'
 import { useRouter } from 'next/navigation'
 import ProductCard from '@/components/ProductCard'
+import Image from 'next/image'
 
 export default function HomePage() {
   const router = useRouter()
@@ -41,6 +42,11 @@ export default function HomePage() {
     router.push(`/product/${productId}`)
   }
 
+  const handleCategoryClick = (categoryId: string) => {
+    setSelectedCategory(categoryId)
+    document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div className="min-h-screen bg-yellow-200">
       {/* Hero Section */}
@@ -55,6 +61,38 @@ export default function HomePage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+        {/* Categories Grid Section */}
+        <section className="bg-blue-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-black mb-8 transform -rotate-2">SHOP BY CATEGORY</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {categories.map((category) => (
+              <div
+                key={category._id}
+                onClick={() => handleCategoryClick(category._id)}
+                className="bg-white border-4 border-black p-4 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <div className="relative w-full aspect-square mb-4 border-2 border-black">
+                  {category.image ? (
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-4xl">📦</span>
+                    </div>
+                  )}
+                </div>
+                <h3 className="font-black text-xl text-center transform -rotate-1">
+                  {category.name.toUpperCase()}
+                </h3>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Spotlight Section */}
         {spotlight && spotlight._id && (
           <section
@@ -88,8 +126,8 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Category Filter */}
-        <section className="bg-pink-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        {/* Category Filter and Products */}
+        <section id="products-section" className="bg-pink-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
             <h2 className="text-3xl font-black transform -rotate-2">BROWSE PRODUCTS</h2>
             <select
