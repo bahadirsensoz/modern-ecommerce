@@ -190,7 +190,7 @@ export default function AddressesPage() {
                                 <div className="space-y-2">
                                     <div className="space-y-1">
                                         <p className="text-sm font-black text-gray-700">STREET</p>
-                                        <p className="font-bold bg-white border-2 border-black p-2">
+                                        <p className="font-bold bg-gray-400 border-2 border-black p-2">
                                             {address.street}
                                         </p>
                                     </div>
@@ -198,13 +198,13 @@ export default function AddressesPage() {
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <p className="text-sm font-black text-gray-700">CITY</p>
-                                            <p className="font-bold bg-white border-2 border-black p-2">
+                                            <p className="font-bold bg-gray-400 border-2 border-black p-2">
                                                 {address.city}
                                             </p>
                                         </div>
                                         <div>
                                             <p className="text-sm font-black text-gray-700">POSTAL CODE</p>
-                                            <p className="font-bold bg-white border-2 border-black p-2">
+                                            <p className="font-bold bg-gray-400 border-2 border-black p-2">
                                                 {address.postalCode}
                                             </p>
                                         </div>
@@ -212,7 +212,7 @@ export default function AddressesPage() {
 
                                     <div>
                                         <p className="text-sm font-black text-gray-700">COUNTRY</p>
-                                        <p className="font-bold bg-white border-2 border-black p-2">
+                                        <p className="font-bold bg-gray-400 border-2 border-black p-2">
                                             {address.country}
                                         </p>
                                     </div>

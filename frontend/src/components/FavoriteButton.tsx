@@ -73,8 +73,8 @@ export default function FavoriteButton({ productId, initialIsFavorite, variant =
     }
 
     const buttonClass = variant === 'card'
-        ? 'absolute top-2 right-2 z-10 text-red-500 text-xl bg-white rounded-full p-2 shadow border-2 border-black'
-        : 'text-red-500 text-2xl bg-white rounded-full p-2 border-2 border-black hover:scale-110 transition'
+        ? 'absolute top-2 right-2 z-10 text-red-500 text-xl bg-gray-400 rounded-full p-2 shadow border-2 border-black'
+        : 'text-red-500 text-2xl bg-gray-400 rounded-full p-2 border-2 border-black hover:scale-110 transition'
 
     return (
         <button

@@ -66,7 +66,7 @@ export default function AddOrEditAddressModal({
 
   return (
     <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-      <div className="bg-white w-full max-w-lg p-6 rounded shadow-md">
+      <div className="bg-gray-400 w-full max-w-lg p-6 rounded shadow-md">
         <h2 className="text-xl font-bold mb-4">
           {initialData ? 'Edit Address' : 'Add Address'}
         </h2>

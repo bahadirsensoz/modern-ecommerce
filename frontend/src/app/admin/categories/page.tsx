@@ -22,7 +22,7 @@ function EditCategoryModal({ open, onClose, category, onSave }: {
     if (!open || !category) return null
     return (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg border-4 border-black w-full max-w-md">
+            <div className="bg-gray-400 p-6 rounded-lg border-4 border-black w-full max-w-md">
                 <h2 className="text-2xl font-black mb-4">Edit Category</h2>
                 <input value={name} onChange={e => setName(e.target.value)} className="w-full p-2 border mb-2" placeholder="Name" />
                 <input value={description} onChange={e => setDescription(e.target.value)} className="w-full p-2 border mb-2" placeholder="Description" />
@@ -199,7 +199,7 @@ export default function AdminCategoriesPage() {
                     {categories.map((cat) => (
                         <li
                             key={cat._id}
-                            className="border-4 border-black p-4 flex justify-between items-center bg-white hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                            className="border-4 border-black p-4 flex justify-between items-center bg-gray-400 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
                         >
                             <div className="flex items-center gap-4">
                                 {cat.image && (

@@ -115,7 +115,7 @@ export default function ChangePasswordPage() {
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder="CURRENT PASSWORD"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400 text-black"
                         required
                     />
                     <input
@@ -123,7 +123,7 @@ export default function ChangePasswordPage() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="NEW PASSWORD"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400 text-black"
                         required
                     />
                     <input
@@ -131,12 +131,12 @@ export default function ChangePasswordPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="CONFIRM NEW PASSWORD"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400 text-black"
                         required
                     />
                     <button
                         type="submit"
-                        className="w-full p-3 bg-yellow-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 disabled:opacity-50"
+                        className="w-full p-3 bg-yellow-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 disabled:opacity-50 text-black"
                         disabled={loading}
                     >
                         {loading ? 'CHANGING...' : 'CHANGE PASSWORD'}

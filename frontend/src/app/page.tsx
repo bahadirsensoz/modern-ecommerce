@@ -149,7 +149,7 @@ export default function HomePage() {
               <div
                 key={category._id}
                 onClick={() => handleCategoryClick(category._id)}
-                className="bg-white border-4 border-black p-4 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                className="bg-gray-400 border-4 border-black p-4 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               >
                 <div className="relative w-full aspect-square mb-4 border-2 border-black">
                   {category.image ? (
@@ -183,12 +183,12 @@ export default function HomePage() {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 p-3 border-4 border-black font-bold"
+                className="flex-1 p-3 border-4 border-black font-bold bg-gray-400"
               />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="p-3 border-4 border-black font-bold bg-white"
+                className="p-3 border-4 border-black font-bold bg-gray-400"
               >
                 <option value="">Sort By</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -202,14 +202,14 @@ export default function HomePage() {
                   placeholder="Min Price"
                   value={priceRange.min}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                  className="w-24 p-3 border-4 border-black font-bold"
+                  className="w-24 p-3 border-4 border-black font-bold bg-gray-400"
                 />
                 <input
                   type="number"
                   placeholder="Max Price"
                   value={priceRange.max}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                  className="w-24 p-3 border-4 border-black font-bold"
+                  className="w-24 p-3 border-4 border-black font-bold bg-gray-400"
                 />
               </div>
               <button
@@ -229,7 +229,7 @@ export default function HomePage() {
                   setSelectedCategory(e.target.value)
                   setPage(1)
                 }}
-                className="p-3 border-4 border-black font-bold bg-white"
+                className="p-3 border-4 border-black font-bold bg-gray-400"
               >
                 <option value="">All Categories</option>
                 {categories.map(cat => (
@@ -267,7 +267,7 @@ export default function HomePage() {
                 <button
                   key={i}
                   onClick={() => setPage(i + 1)}
-                  className={`w-10 h-10 font-bold border-2 border-black ${page === i + 1 ? 'bg-blue-500 text-white' : 'bg-white'
+                  className={`w-10 h-10 font-bold border-2 border-black ${page === i + 1 ? 'bg-blue-500 text-white' : 'bg-gray-400'
                     }`}
                 >
                   {i + 1}

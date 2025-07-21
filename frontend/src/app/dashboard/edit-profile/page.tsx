@@ -122,19 +122,19 @@ export default function EditProfilePage() {
                         value={firstName}
                         onChange={e => setFirstName(e.target.value)}
                         placeholder="FIRST NAME"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 text-black"
                     />
                     <input
                         value={lastName}
                         onChange={e => setLastName(e.target.value)}
                         placeholder="LAST NAME"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 text-black"
                     />
                     <input
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
                         placeholder="PHONE"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400"
+                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 text-black"
                     />
                     <button
                         type="submit"

@@ -32,7 +32,7 @@ function EditProductModal({ open, onClose, product, categories, onSave }: {
     if (!open || !product) return null
     return (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg border-4 border-black w-full max-w-md">
+            <div className="bg-gray-400 p-6 rounded-lg border-4 border-black w-full max-w-md">
                 <h2 className="text-2xl font-black mb-4">Edit Product</h2>
                 <input value={name} onChange={e => setName(e.target.value)} className="w-full p-2 border mb-2" placeholder="Name" />
                 <input value={description} onChange={e => setDescription(e.target.value)} className="w-full p-2 border mb-2" placeholder="Description" />
@@ -285,7 +285,7 @@ export default function AdminProductsPage() {
                         <select
                             value={categoryId}
                             onChange={(e) => setCategoryId(e.target.value)}
-                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-white"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-gray-400"
                             required
                         >
                             <option value="">Select Category</option>
@@ -315,7 +315,7 @@ export default function AdminProductsPage() {
                     {products.map((product) => (
                         <div
                             key={product._id}
-                            className="bg-white p-4 border-4 border-black flex justify-between items-center hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+                            className="bg-gray-400 p-4 border-4 border-black flex justify-between items-center hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
                         >
                             <input type="checkbox" checked={selectedProducts.includes(product._id)} onChange={e => {
                                 setSelectedProducts(prev => e.target.checked ? [...prev, product._id] : prev.filter(id => id !== product._id))

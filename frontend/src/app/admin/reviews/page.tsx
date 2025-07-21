@@ -156,7 +156,7 @@ export default function AdminReviewsPage() {
                                     {pendingReviews.map(review => (
                                         <div
                                             key={review._id}
-                                            className="bg-white p-4 border-2 border-black"
+                                            className="bg-gray-400 p-4 border-2 border-black"
                                         >
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
