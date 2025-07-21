@@ -3,6 +3,7 @@ import { Product } from '../models/Product'
 import { IUser } from '../models/User'
 import multer from 'multer'
 import cloudinary, { uploadImage } from '../config/cloudinary'
+import validator from 'validator'
 
 declare global {
     namespace Express {
@@ -78,9 +79,12 @@ export const createProduct = async (req: Request, res: Response) => {
             }
         }
 
+        const name = validator.escape(req.body.name)
+        const description = req.body.description ? validator.escape(req.body.description) : ''
+
         const product = new Product({
-            name: req.body.name,
-            description: req.body.description || '',
+            name,
+            description,
             price: Number(req.body.price),
             category: req.body.category,
             images: imageUrls
@@ -115,7 +119,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
 export const addProductReview = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
-        const { rating, comment } = req.body
+        let { rating, comment } = req.body
         const userId = req.user?._id
 
         if (!userId) {
@@ -126,6 +130,8 @@ export const addProductReview = async (req: Request, res: Response) => {
         if (!product) {
             return res.status(404).json({ message: 'Product not found' })
         }
+
+        comment = comment ? validator.escape(comment) : ''
 
         const existingReview = product.reviews.find(
             (review: any) => review.user.toString() === userId.toString()

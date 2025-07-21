@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { User } from '../models/User'
 import { sendEmail } from '../utils/mailer'
+import validator from 'validator'
 
 
 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
@@ -21,8 +22,17 @@ export const registerUser = async (req: Request, res: Response) => {
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' })
         }
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ message: 'Invalid email format' })
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' })
+        }
+        const sanitizedEmail = validator.normalizeEmail(email) || email
+        const sanitizedFirstName = firstName ? validator.escape(firstName) : ''
+        const sanitizedLastName = lastName ? validator.escape(lastName) : ''
 
-        const existingUser = await User.findOne({ email })
+        const existingUser = await User.findOne({ email: sanitizedEmail })
         if (existingUser) {
             return res.status(409).json({ message: 'Email already exists' })
         }
@@ -31,10 +41,10 @@ export const registerUser = async (req: Request, res: Response) => {
         const verificationToken = crypto.randomBytes(32).toString('hex')
 
         const newUser = await User.create({
-            email,
+            email: sanitizedEmail,
             password: hashedPassword,
-            firstName,
-            lastName,
+            firstName: sanitizedFirstName,
+            lastName: sanitizedLastName,
             verificationToken,
             verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000,
             emailVerified: false
@@ -87,6 +97,13 @@ export const verifyEmail = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' })
+        }
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ message: 'Invalid email format' })
+        }
 
         const user = await User.findOne({ email })
         if (!user) {
@@ -165,6 +182,9 @@ export const resetPassword = async (req: Request, res: Response) => {
 
         if (!token || typeof token !== 'string') {
             return res.status(400).json({ message: 'Invalid token' })
+        }
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' })
         }
 
         const user = await User.findOne({
