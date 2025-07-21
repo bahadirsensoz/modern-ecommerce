@@ -28,7 +28,6 @@ This application is a full-featured e-commerce platform supporting:
 - Tailwind CSS
 - Zustand (state management)
 - React Hook Form, Zod (form validation)
-- SWR (data fetching)
 - Recharts (charts)
 - Axios
 
