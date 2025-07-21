@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function ChangePasswordPage() {
     const router = useRouter()
+    const { isAuthenticated, token } = useAuthStore()
     const [currentPassword, setCurrentPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -13,9 +16,19 @@ export default function ChangePasswordPage() {
     const [success, setSuccess] = useState('')
 
     useEffect(() => {
-        const token = localStorage.getItem('token')
-        if (!token) router.push('/login')
-    }, [router])
+        if (!isAuthenticated || !token) {
+            router.push('/login')
+            return
+        }
+
+        logTokenInfo(token, 'ChangePassword')
+
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in ChangePassword')
+            router.push('/login')
+            return
+        }
+    }, [isAuthenticated, token, router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -28,7 +41,21 @@ export default function ChangePasswordPage() {
         }
 
         setLoading(true)
-        const token = localStorage.getItem('token')
+
+        if (!isAuthenticated || !token) {
+            setMessage('Authentication error. Please login again.')
+            setLoading(false)
+            return
+        }
+
+        logTokenInfo(token, 'ChangePasswordSubmit')
+
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in ChangePasswordSubmit')
+            setMessage('Authentication error. Please login again.')
+            setLoading(false)
+            return
+        }
 
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/change-password`, {
             method: 'PUT',
@@ -36,6 +63,7 @@ export default function ChangePasswordPage() {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
+            credentials: 'include',
             body: JSON.stringify({ currentPassword, newPassword }),
         })
 

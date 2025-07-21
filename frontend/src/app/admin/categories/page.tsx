@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Category } from '@/types'
 import AdminGuard from '@/components/guards/AdminGuard'
 import Image from 'next/image'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function AdminCategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([])
@@ -11,6 +13,7 @@ export default function AdminCategoriesPage() {
     const [description, setDescription] = useState('')
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [message, setMessage] = useState('')
+    const { isAuthenticated, token } = useAuthStore()
 
     const fetchCategories = async () => {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
@@ -26,6 +29,19 @@ export default function AdminCategoriesPage() {
         e.preventDefault()
 
         try {
+            if (!isAuthenticated || !token) {
+                setMessage('Authentication error. Please login again.')
+                return
+            }
+
+            logTokenInfo(token, 'AdminCreateCategory')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AdminCreateCategory')
+                setMessage('Authentication error. Please login again.')
+                return
+            }
+
             const formData = new FormData()
             formData.append('name', name)
             formData.append('description', description)
@@ -33,12 +49,12 @@ export default function AdminCategoriesPage() {
                 formData.append('image', imageFile)
             }
 
-            const token = localStorage.getItem('token')
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`
                 },
+                credentials: 'include',
                 body: formData
             })
 
@@ -58,7 +74,26 @@ export default function AdminCategoriesPage() {
     }
 
     const handleDelete = async (id: string) => {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${id}`, { method: 'DELETE' })
+        if (!isAuthenticated || !token) {
+            console.error('No authentication token found')
+            return
+        }
+
+        logTokenInfo(token, 'AdminDeleteCategory')
+
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in AdminDeleteCategory')
+            return
+        }
+
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${id}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        })
         fetchCategories()
     }
 

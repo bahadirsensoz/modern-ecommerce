@@ -9,9 +9,22 @@ const getUserIdFromRequest = (req: Request): string | null => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
             return decoded.id
         }
-        return req.cookies.guestToken || null
-    } catch {
-        return req.cookies.guestToken || null
+
+        const sessionId = req.headers['x-session-id'] as string
+        if (sessionId) {
+            return sessionId
+        }
+
+        const guestToken = req.cookies.guestToken || null
+        return guestToken
+    } catch (error) {
+        console.error('Error in getUserIdFromRequest:', error)
+        const sessionId = req.headers['x-session-id'] as string
+        if (sessionId) {
+            return sessionId
+        }
+        const guestToken = req.cookies.guestToken || null
+        return guestToken
     }
 }
 
@@ -20,7 +33,15 @@ export const getCart = async (req: Request, res: Response) => {
         const userId = getUserIdFromRequest(req)
         if (!userId) return res.json({ items: [] })
 
-        const cart = await Cart.findOne({ user: userId }).populate('items.product')
+        const isSessionId = userId.startsWith('session_')
+
+        let cart
+        if (isSessionId) {
+            cart = await Cart.findOne({ sessionId: userId }).populate('items.product')
+        } else {
+            cart = await Cart.findOne({ user: userId }).populate('items.product')
+        }
+
         res.json(cart || { items: [] })
     } catch (error) {
         console.error('GET CART ERROR:', error)
@@ -31,16 +52,27 @@ export const getCart = async (req: Request, res: Response) => {
 export const addToCart = async (req: Request, res: Response) => {
     try {
         const userId = getUserIdFromRequest(req)
-        if (!userId) return res.status(400).json({ message: 'No user or guest token found' })
+
+        if (!userId) return res.status(400).json({ message: 'No user or session ID found' })
 
         const { productId, quantity, size, color } = req.body
         if (!productId || !quantity) {
             return res.status(400).json({ message: 'Product ID and quantity are required' })
         }
 
-        let cart = await Cart.findOne({ user: userId })
-        if (!cart) {
-            cart = new Cart({ user: userId, items: [] })
+        const isSessionId = userId.startsWith('session_')
+
+        let cart
+        if (isSessionId) {
+            cart = await Cart.findOne({ sessionId: userId })
+            if (!cart) {
+                cart = new Cart({ sessionId: userId, items: [] })
+            }
+        } else {
+            cart = await Cart.findOne({ user: userId })
+            if (!cart) {
+                cart = new Cart({ user: userId, items: [] })
+            }
         }
 
         const existingIndex = cart.items.findIndex((item: ICartItem) =>
@@ -68,9 +100,17 @@ export const updateCartItem = async (req: Request, res: Response) => {
     try {
         const userId = getUserIdFromRequest(req)
         const { productId, quantity } = req.body
-        if (!userId) return res.status(400).json({ message: 'No user or guest token found' })
+        if (!userId) return res.status(400).json({ message: 'No user or session ID found' })
 
-        const cart = await Cart.findOne({ user: userId })
+        const isSessionId = userId.startsWith('session_')
+
+        let cart
+        if (isSessionId) {
+            cart = await Cart.findOne({ sessionId: userId })
+        } else {
+            cart = await Cart.findOne({ user: userId })
+        }
+
         if (!cart) return res.status(404).json({ message: 'Cart not found' })
 
         const item = cart.items.find((item: ICartItem) => item.product.toString() === productId)
@@ -91,9 +131,17 @@ export const removeFromCart = async (req: Request, res: Response) => {
     try {
         const userId = getUserIdFromRequest(req)
         const { productId } = req.body
-        if (!userId) return res.status(400).json({ message: 'No user or guest token found' })
+        if (!userId) return res.status(400).json({ message: 'No user or session ID found' })
 
-        const cart = await Cart.findOne({ user: userId })
+        const isSessionId = userId.startsWith('session_')
+
+        let cart
+        if (isSessionId) {
+            cart = await Cart.findOne({ sessionId: userId })
+        } else {
+            cart = await Cart.findOne({ user: userId })
+        }
+
         if (!cart) return res.status(404).json({ message: 'Cart not found' })
 
         cart.items = cart.items.filter(item => item.product.toString() !== productId)
@@ -116,17 +164,17 @@ export const clearCart = async (req: Request, res: Response) => {
     try {
         const userId = getUserIdFromRequest(req)
         if (!userId) {
-            return res.status(400).json({ message: 'No user or guest token found' })
+            return res.status(400).json({ message: 'No user or session ID found' })
         }
 
-        const cartQuery = {
-            $or: [
-                { user: userId },
-                { sessionId: userId }
-            ]
-        }
+        const isSessionId = userId.startsWith('session_')
 
-        const deletedCart = await Cart.findOneAndDelete(cartQuery)
+        let deletedCart
+        if (isSessionId) {
+            deletedCart = await Cart.findOneAndDelete({ sessionId: userId })
+        } else {
+            deletedCart = await Cart.findOneAndDelete({ user: userId })
+        }
 
         res.json({ message: 'Cart cleared successfully' })
     } catch (error) {

@@ -2,51 +2,33 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-interface User {
-    firstName?: string
-    lastName?: string
-    email: string
-    phone?: string
-    addresses?: Array<{
-        street?: string
-        city?: string
-        country?: string
-        postalCode?: string
-        isDefault?: boolean
-        label?: string
-    }>
-}
+import { useAuthStore } from '@/store/authStore'
+import { User } from '@/types'
 
 export default function DashboardPage() {
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
     const router = useRouter()
+    const { isAuthenticated, user: authUser, checkAuth } = useAuthStore()
 
     useEffect(() => {
         const fetchUser = async () => {
-            const token = localStorage.getItem('token')
-            if (!token) {
-                router.push('/login')
-                return
+            if (!isAuthenticated) {
+                await checkAuth()
+                if (!isAuthenticated) {
+                    router.push('/login')
+                    return
+                }
             }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-                headers: { Authorization: `Bearer ${token}` },
-            })
-
-            if (!res.ok) {
-                router.push('/login')
-                return
+            if (authUser) {
+                setUser(authUser)
+                setLoading(false)
             }
-
-            const data = await res.json()
-            setUser(data)
-            setLoading(false)
         }
 
         fetchUser()
-    }, [router])
+    }, [isAuthenticated, authUser, checkAuth, router])
 
     if (loading) return <p className="p-4">Loading...</p>
     if (!user) return <p className="p-4 text-red-500">Failed to load user data.</p>

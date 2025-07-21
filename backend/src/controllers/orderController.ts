@@ -3,11 +3,29 @@ import { Order } from '../models/Order'
 import { Cart } from '../models/Cart'
 import { User } from '../models/User'
 import { Product } from '../models/Product'
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } from '../utils/mailer'
 
 export const placeOrder = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).user?._id
-        const sessionId = req.cookies.sessionId
+        let userId = null
+        let sessionId = null
+
+        const authHeader = req.headers.authorization
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1]
+                const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET!) as any
+                userId = decoded.id
+            } catch (error) {
+                console.error('JWT verification failed:', error)
+            }
+        }
+
+        // Check for session ID (guest users)
+        if (!userId) {
+            sessionId = req.headers['x-session-id'] as string || req.cookies.sessionId
+        }
+
         const { shippingAddress, paymentMethod, email, items, priceDetails } = req.body
 
         if (!items?.length) {
@@ -79,6 +97,15 @@ export const placeOrder = async (req: Request, res: Response) => {
             select: 'name price image description'
         })
 
+        // Send order confirmation email
+        try {
+            const customerName = shippingAddress.fullName
+            await sendOrderConfirmationEmail(populatedOrder, email, customerName)
+        } catch (emailError) {
+            console.error('Failed to send order confirmation email:', emailError)
+            // Don't fail the order creation if email fails
+        }
+
         res.status(201).json(populatedOrder)
     } catch (error) {
         console.error('Place order error:', error)
@@ -90,8 +117,25 @@ export const placeOrder = async (req: Request, res: Response) => {
 
 export const getMyOrders = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).user?._id
-        const sessionId = req.cookies.sessionId
+        // Check for JWT token (authenticated users)
+        let userId = null
+        let sessionId = null
+
+        const authHeader = req.headers.authorization
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1]
+                const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET!) as any
+                userId = decoded.id
+            } catch (error) {
+                console.error('JWT verification failed:', error)
+            }
+        }
+
+        // Check for session ID (guest users)
+        if (!userId) {
+            sessionId = req.headers['x-session-id'] as string || req.cookies.sessionId
+        }
 
         if (!userId && !sessionId) {
             return res.status(401).json({ message: 'Authentication required' })
@@ -125,8 +169,26 @@ export const getMyOrders = async (req: Request, res: Response) => {
 export const getOrder = async (req: Request, res: Response) => {
     try {
         const orderId = req.params.id
-        const userId = (req as any).user?._id
-        const sessionId = req.cookies.sessionId
+
+        // Check for JWT token (authenticated users)
+        let userId = null
+        let sessionId = null
+
+        const authHeader = req.headers.authorization
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1]
+                const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET!) as any
+                userId = decoded.id
+            } catch (error) {
+                console.error('JWT verification failed:', error)
+            }
+        }
+
+        // Check for session ID (guest users)
+        if (!userId) {
+            sessionId = req.headers['x-session-id'] as string || req.cookies.sessionId
+        }
 
         const order = await Order.findOne({
             _id: orderId,
@@ -174,13 +236,28 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
         return res.status(400).json({ message: 'Invalid status' })
     }
 
-    const order = await Order.findById(id)
+    const order = await Order.findById(id).populate({
+        path: 'orderItems.product',
+        select: 'name price image description'
+    })
+
     if (!order) {
         return res.status(404).json({ message: 'Order not found' })
     }
 
+    const oldStatus = order.status
     order.status = status
     await order.save()
+
+    if (oldStatus !== status && order.email) {
+        try {
+            const customerName = order.shippingAddress.fullName
+            await sendOrderStatusUpdateEmail(order, order.email, customerName, status)
+        } catch (emailError) {
+            console.error('Failed to send order status update email:', emailError)
+            // Don't fail the status update if email fails
+        }
+    }
 
     res.status(200).json(order)
 }

@@ -8,8 +8,12 @@ import productRoutes from './routes/product'
 import userRoutes from './routes/user'
 import cartRoutes from './routes/cart'
 import orderRoutes from './routes/order'
+import newsletterRoutes from './routes/newsletter'
+import recommendationRoutes from './routes/recommendations'
+import adminRoutes from './routes/admin'
 import cookieParser from 'cookie-parser'
 import { assignSessionId } from './middleware/sessionMiddleware'
+import { generalLimiter } from './middleware/rateLimit'
 
 
 dotenv.config()
@@ -28,13 +32,16 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser())
 app.use(assignSessionId)
+app.use(generalLimiter)
 app.use('/api/auth', authRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/products', productRoutes)
-app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/orders', orderRoutes)
+app.use('/api/newsletter', newsletterRoutes)
+app.use('/api/recommendations', recommendationRoutes)
+app.use('/api/admin', adminRoutes)
 
 
 app.get('/', (req, res) => {

@@ -4,22 +4,36 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import axios from 'axios'
 import { Order } from '@/types'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 const OrderHistoryPage = () => {
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const { isAuthenticated, token } = useAuthStore()
 
     useEffect(() => {
         const fetchOrders = async () => {
-            const token = localStorage.getItem('token')
-            const sessionId = localStorage.getItem('sessionId')
+            if (!isAuthenticated || !token) {
+                setLoading(false)
+                return
+            }
+
+            logTokenInfo(token, 'OrdersPage')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in OrdersPage')
+                setError('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
 
             try {
                 const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/me`, {
                     headers: {
-                        ...(token && { Authorization: `Bearer ${token}` }),
-                        ...(sessionId && { 'X-Session-Id': sessionId })
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     },
                     withCredentials: true
                 })

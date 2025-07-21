@@ -2,10 +2,18 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+
+interface LoginFormData {
+    email: string;
+    password: string;
+}
+
 import Link from 'next/link'
+import { useAuthStore } from '@/store/authStore'
 
 export default function LoginPage() {
     const router = useRouter()
+    const { setAuth } = useAuthStore()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [message, setMessage] = useState('')
@@ -21,14 +29,14 @@ export default function LoginPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
+                credentials: 'include'
             })
 
             const data = await res.json()
 
             if (res.ok) {
-                localStorage.setItem('token', data.token)
-                localStorage.setItem('user', JSON.stringify(data.user))
-                window.dispatchEvent(new Event('auth-change'))
+                setAuth(data.token, data.user)
+                localStorage.setItem('userRole', data.user.role)
 
                 if (data.user.role === 'admin') {
                     router.push('/admin')
@@ -44,6 +52,7 @@ export default function LoginPage() {
             setLoading(false)
         }
     }
+
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center p-6">

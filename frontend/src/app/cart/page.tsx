@@ -1,39 +1,29 @@
 'use client'
 
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { calculatePrices } from '@/utils/priceCalculations'
 
 export default function CartPage() {
     const { items, removeFromCart, updateQuantity } = useCartStore()
+    const { isAuthenticated, token } = useAuthStore()
 
     const handleRemoveItem = async (productId: string) => {
-        const token = localStorage.getItem('token')
-
-        if (token) {
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/remove`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ productId }),
-                })
-
-                if (!res.ok) {
-                    const error = await res.text()
-                    console.error('Failed to remove from cart:', error)
-                    alert('Could not remove item from server-side cart.')
-                    return
-                }
-            } catch (err) {
-                console.error('Server error removing from cart:', err)
-            }
+        try {
+            await useCartStore.getState().removeFromCart(productId, token || undefined)
+        } catch (error) {
+            console.error('Failed to remove item:', error)
         }
+    }
 
-        removeFromCart(productId)
+    const handleUpdateQuantity = async (productId: string, quantity: number) => {
+        try {
+            await useCartStore.getState().updateQuantity(productId, quantity, token || undefined)
+        } catch (error) {
+            console.error('Failed to update quantity:', error)
+        }
     }
 
     const { subtotal, tax, shipping, total } = calculatePrices(items.map(item => ({
@@ -66,7 +56,7 @@ export default function CartPage() {
                                     value={item.quantity}
                                     min={1}
                                     onChange={(e) =>
-                                        updateQuantity(item.product._id, parseInt(e.target.value))
+                                        handleUpdateQuantity(item.product._id, parseInt(e.target.value))
                                     }
                                     className="w-12 border text-center"
                                 />

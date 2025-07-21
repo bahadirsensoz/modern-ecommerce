@@ -1,11 +1,15 @@
 import { Request, Response } from 'express'
-import { User } from '../models/User'
+import { User, IUser } from '../models/User'
 import bcrypt from 'bcrypt'
 import mongoose from 'mongoose'
 
-export const getMe = async (req: Request, res: Response) => {
+interface AuthRequest extends Request {
+    user?: IUser
+}
+
+export const getMe = async (req: AuthRequest, res: Response) => {
     try {
-        const user = await User.findById((req.user as any)?._id).select('-password')
+        const user = await User.findById(req.user?._id).select('-password')
         if (!user) return res.status(404).json({ message: 'User not found' })
         res.json(user)
     } catch (err) {
@@ -14,10 +18,9 @@ export const getMe = async (req: Request, res: Response) => {
     }
 }
 
-
-export const updateProfile = async (req: Request, res: Response) => {
+export const updateProfile = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).userId
+        const userId = req.user?._id
         const { firstName, lastName, phone } = req.body
 
         const user = await User.findById(userId)
@@ -36,9 +39,9 @@ export const updateProfile = async (req: Request, res: Response) => {
     }
 }
 
-export const changePassword = async (req: Request, res: Response) => {
+export const changePassword = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).userId
+        const userId = req.user?._id
         const { currentPassword, newPassword } = req.body
 
         if (!currentPassword || !newPassword) {
@@ -62,10 +65,19 @@ export const changePassword = async (req: Request, res: Response) => {
     }
 }
 
-export const updateAddresses = async (req: Request, res: Response) => {
+interface Address {
+    label?: string
+    street?: string
+    city?: string
+    country?: string
+    postalCode?: string
+    isDefault: boolean
+}
+
+export const updateAddresses = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).user?._id
-        const { addresses } = req.body
+        const userId = req.user?._id
+        const { addresses } = req.body as { addresses: Address[] }
 
         if (!Array.isArray(addresses)) {
             return res.status(400).json({ message: 'Addresses must be an array' })
@@ -97,10 +109,10 @@ export const updateAddresses = async (req: Request, res: Response) => {
     }
 }
 
-export const toggleFavorite = async (req: Request, res: Response) => {
+export const toggleFavorite = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).user?._id
-        const { productId } = req.body
+        const userId = req.user?._id
+        const { productId } = req.body as { productId: string }
 
         if (!productId) {
             return res.status(400).json({ message: 'Product ID is required' })
@@ -130,9 +142,9 @@ export const toggleFavorite = async (req: Request, res: Response) => {
     }
 }
 
-export const getFavorites = async (req: Request, res: Response) => {
+export const getFavorites = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).user.id
+        const userId = req.user?.id || req.user?._id
         const user = await User.findById(userId).populate('favorites')
         if (!user) return res.status(404).json({ message: 'User not found' })
 

@@ -1,15 +1,18 @@
 'use client'
 
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
 import { calculatePrices } from '@/utils/priceCalculations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Address } from '@/types'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function CheckoutPage() {
     const router = useRouter()
-    const { items, clearCart } = useCartStore()
+    const { items, clearCart, sessionId } = useCartStore()
+    const { isAuthenticated, token } = useAuthStore()
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [addresses, setAddresses] = useState<Address[]>([])
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
@@ -29,16 +32,23 @@ export default function CheckoutPage() {
     const [error, setError] = useState('')
 
     useEffect(() => {
-        const token = localStorage.getItem('token')
-        setIsLoggedIn(!!token)
+        setIsLoggedIn(isAuthenticated)
 
         const fetchUserData = async () => {
-            if (!token) return
+            if (!isAuthenticated || !token) return
+
+            logTokenInfo(token, 'CheckoutFetchUser')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in CheckoutFetchUser')
+                return
+            }
 
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
                     headers: {
-                        Authorization: `Bearer ${token}`
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     },
                     credentials: 'include'
                 })
@@ -119,7 +129,6 @@ export default function CheckoutPage() {
         }
 
         try {
-            const token = localStorage.getItem('token')
             const prices = calculatePrices(items.map(item => ({
                 productId: item.product._id,
                 price: item.product.price,
@@ -153,6 +162,18 @@ export default function CheckoutPage() {
 
             if (isLoggedIn && saveAddress && !selectedAddressId) {
                 try {
+                    if (!isAuthenticated || !token) {
+                        console.error('No authentication token found for saving address')
+                        return
+                    }
+
+                    logTokenInfo(token, 'CheckoutSaveAddress')
+
+                    if (!isValidJWT(token)) {
+                        console.error('Invalid JWT token in CheckoutSaveAddress')
+                        return
+                    }
+
                     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/addresses`, {
                         method: 'PUT',
                         headers: {
@@ -183,13 +204,20 @@ export default function CheckoutPage() {
                 }
             }
 
+            if (isAuthenticated && !token) {
+                setError('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
+
             const res = await axios.post(
                 `${process.env.NEXT_PUBLIC_API_URL}/orders`,
                 orderBody,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                        ...(isAuthenticated && token ? { Authorization: `Bearer ${token}` } : {}),
+                        ...(!isAuthenticated && sessionId ? { 'X-Session-Id': sessionId } : {})
                     },
                     withCredentials: true
                 }
@@ -210,10 +238,21 @@ export default function CheckoutPage() {
     const handlePlaceOrder = async () => {
         try {
             setLoading(true)
-            const token = localStorage.getItem('token')
 
-            if (!token) {
+            if (!isAuthenticated || !token) {
                 console.error('No auth token found')
+                setError('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
+
+            logTokenInfo(token, 'CheckoutPlaceOrder')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in CheckoutPlaceOrder')
+                setError('Authentication error. Please login again.')
+                setLoading(false)
+                return
             }
 
 
@@ -240,7 +279,8 @@ export default function CheckoutPage() {
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
+                        Authorization: `Bearer ${token}`,
+                        ...(!isAuthenticated && sessionId ? { 'X-Session-Id': sessionId } : {})
                     },
                     withCredentials: true
                 }

@@ -4,10 +4,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 
-export default function AdminGuard({ children }: { children: React.ReactNode }) {
-    const [authorized, setAuthorized] = useState(false)
+interface AuthGuardProps {
+    children: React.ReactNode
+    requireAdmin?: boolean
+}
+
+export default function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
     const router = useRouter()
-    const { isAuthenticated, user, checkAuth } = useAuthStore()
+    const { user, isAuthenticated, checkAuth } = useAuthStore()
+    const [authorized, setAuthorized] = useState(false)
 
     useEffect(() => {
         const verifyAuth = async () => {
@@ -19,7 +24,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
                 }
             }
 
-            if (user?.role !== 'admin') {
+            if (requireAdmin && user?.role !== 'admin') {
                 router.push('/')
                 return
             }
@@ -28,9 +33,11 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         }
 
         verifyAuth()
-    }, [isAuthenticated, user, checkAuth, router])
+    }, [isAuthenticated, user, checkAuth, router, requireAdmin])
 
-    if (!authorized) return null
+    if (!authorized) {
+        return <div>Loading...</div>
+    }
 
     return <>{children}</>
 }

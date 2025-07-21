@@ -3,17 +3,36 @@
 import { useEffect, useState } from 'react'
 import ProductCard from '@/components/ProductCard'
 import { Product } from '@/types'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function FavoritesPage() {
     const [favorites, setFavorites] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
+    const { isAuthenticated, token } = useAuthStore()
 
     useEffect(() => {
         const fetchFavorites = async () => {
+            if (!isAuthenticated || !token) {
+                setLoading(false)
+                return
+            }
+
+            logTokenInfo(token, 'FavoritesPage')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in FavoritesPage')
+                setLoading(false)
+                return
+            }
+
             try {
-                const token = localStorage.getItem('token')
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/favorites`, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
                 })
 
                 const data = await res.json()

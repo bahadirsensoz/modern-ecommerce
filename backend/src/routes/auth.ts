@@ -6,13 +6,14 @@ import {
     forgotPassword,
     resetPassword,
 } from '../controllers/authController'
+import { authLimiter, resetRateLimits } from '../middleware/rateLimit'
 
 const router = express.Router()
 
-router.post('/register', registerUser)
-router.post('/login', loginUser)
+router.post('/register', authLimiter, registerUser)
+router.post('/login', authLimiter, loginUser)
 router.get('/verify-email', verifyEmail)
-router.post('/forgot-password', forgotPassword)
-router.post('/reset-password', resetPassword)
+router.post('/forgot-password', authLimiter, forgotPassword)
+router.post('/reset-password', authLimiter, resetPassword)
 
 export default router

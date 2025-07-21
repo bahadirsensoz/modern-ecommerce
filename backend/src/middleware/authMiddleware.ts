@@ -1,29 +1,49 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { User } from '../models/User'
+import { User, IUser } from '../models/User'
 
-export const protect = async (req: Request, res: Response, next: NextFunction) => {
+interface AuthRequest extends Request {
+    user?: IUser
+}
+
+interface JwtPayload {
+    id: string
+    iat?: number
+    exp?: number
+}
+
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const token = req.headers.authorization?.replace('Bearer ', '')
+        let token: string | undefined
 
-        if (!token) {
-            return next()
+        const authHeader = req.headers.authorization
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ message: 'Not authorized - Invalid token format' })
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload
-        if (!decoded?.id) {
-            return next()
+        token = authHeader.split(' ')[1]
+
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is not defined')
+            return res.status(500).json({ message: 'Server configuration error' })
         }
 
-        const user = await User.findById(decoded.id).select('-password')
-        if (!user) {
-            return next()
-        }
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload
 
-        ; (req as any).user = user
-        next()
+            const user = await User.findById(decoded.id).select('-password')
+            if (!user) {
+                return res.status(401).json({ message: 'User not found' })
+            }
+
+            req.user = user
+            next()
+        } catch (jwtError) {
+            console.error('JWT verification error:', jwtError)
+            return res.status(401).json({ message: 'Not authorized - Invalid token' })
+        }
     } catch (error) {
         console.error('Auth middleware error:', error)
-        next()
+        res.status(500).json({ message: 'Server error' })
     }
 }

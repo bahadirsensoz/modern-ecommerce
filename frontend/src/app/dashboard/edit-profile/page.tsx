@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User } from '@/types'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function EditProfilePage() {
     const router = useRouter()
+    const { isAuthenticated, token } = useAuthStore()
     const [user, setUser] = useState<User | null>(null)
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
@@ -15,11 +18,25 @@ export default function EditProfilePage() {
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        const token = localStorage.getItem('token')
-        if (!token) return router.push('/login')
+        if (!isAuthenticated || !token) {
+            router.push('/login')
+            return
+        }
+
+        logTokenInfo(token, 'EditProfile')
+
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in EditProfile')
+            router.push('/login')
+            return
+        }
 
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
         })
             .then(res => res.json())
             .then(data => {
@@ -37,13 +54,28 @@ export default function EditProfilePage() {
         setMessage('')
         setSuccess('')
 
-        const token = localStorage.getItem('token')
+        if (!isAuthenticated || !token) {
+            setMessage('Authentication error. Please login again.')
+            setLoading(false)
+            return
+        }
+
+        logTokenInfo(token, 'EditProfileUpdate')
+
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in EditProfileUpdate')
+            setMessage('Authentication error. Please login again.')
+            setLoading(false)
+            return
+        }
+
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
+            credentials: 'include',
             body: JSON.stringify({ firstName, lastName, phone }),
         })
 

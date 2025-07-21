@@ -21,6 +21,7 @@ export interface IUser extends Document {
     role: UserRole
     addresses: IAddress[]
     favorites: Types.ObjectId[]
+    favoriteCategories: Types.ObjectId[]
     emailVerified: boolean
     verificationToken?: string
     verificationTokenExpires?: Date
@@ -53,6 +54,7 @@ const userSchema = new mongoose.Schema(
             }
         ],
         favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+        favoriteCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
         emailVerified: { type: Boolean, default: false },
         verificationToken: String,
         verificationTokenExpires: Date,
