@@ -24,6 +24,7 @@ const allowedOrigins = [
     'https://modern-ecommerce-murex.vercel.app/',
     'http://localhost:3000',
     'https://modern-ecommerce-git-main-alis-projects-c64717da.vercel.app/',
+    'https://modern-ecommerce-git-main-alis-projects-c64717da.vercel.app',
 ]
 
 app.use(cors({

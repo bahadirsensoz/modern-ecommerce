@@ -50,8 +50,12 @@ export default function NewsletterAdminPage() {
 
             setSubscribers(subscribersRes.data.subscribers)
             setStats(statsRes.data)
-        } catch (error: any) {
-            setError(error.response?.data?.message || 'Failed to fetch data')
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                setError(error.response?.data?.message || 'Failed to fetch data')
+            } else {
+                setError('Failed to fetch data')
+            }
         } finally {
             setLoading(false)
         }
@@ -138,8 +142,8 @@ export default function NewsletterAdminPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${subscriber.isActive
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-red-100 text-red-800'
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-red-100 text-red-800'
                                                 }`}>
                                                 {subscriber.isActive ? 'Active' : 'Inactive'}
                                             </span>

@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react'
 import AdminGuard from '@/components/guards/AdminGuard'
 import { useAuthStore } from '@/store/authStore'
 import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
+import { Order, Product } from '@/types'
 
 interface DashboardStats {
     totalSales: number
     totalOrders: number
     totalCustomers: number
     totalProducts: number
-    recentOrders: any[]
-    popularProducts: any[]
+    recentOrders: Order[]
+    popularProducts: Product[]
     orderStatusDistribution: {
         pending: number
         processing: number
@@ -149,7 +150,7 @@ export default function AdminDashboardPage() {
                 <div className="bg-white border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     <h2 className="text-2xl font-black mb-6">RECENT ORDERS</h2>
                     <div className="space-y-4">
-                        {stats?.recentOrders?.slice(0, 5).map((order: any) => (
+                        {stats?.recentOrders?.slice(0, 5).map((order: Order) => (
                             <div key={order._id} className="bg-gray-100 border-2 border-black p-4">
                                 <div className="flex justify-between items-center">
                                     <div>
@@ -160,10 +161,10 @@ export default function AdminDashboardPage() {
                                     <div className="text-right">
                                         <p className="font-black text-lg">₺{order.totalPrice}</p>
                                         <span className={`px-2 py-1 text-xs font-black border-2 border-black ${order.status === 'delivered' ? 'bg-green-400' :
-                                                order.status === 'shipped' ? 'bg-purple-400' :
-                                                    order.status === 'processing' ? 'bg-blue-400' :
-                                                        order.status === 'cancelled' ? 'bg-red-400' :
-                                                            'bg-yellow-400'
+                                            order.status === 'shipped' ? 'bg-purple-400' :
+                                                order.status === 'processing' ? 'bg-blue-400' :
+                                                    order.status === 'cancelled' ? 'bg-red-400' :
+                                                        'bg-yellow-400'
                                             }`}>
                                             {order.status.toUpperCase()}
                                         </span>
@@ -178,7 +179,7 @@ export default function AdminDashboardPage() {
                 <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     <h2 className="text-2xl font-black mb-6">POPULAR PRODUCTS</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {stats?.popularProducts?.slice(0, 6).map((product: any) => (
+                        {stats?.popularProducts?.slice(0, 6).map((product: Product) => (
                             <div key={product._id} className="bg-gray-100 border-2 border-black p-4">
                                 <h3 className="font-black mb-2">{product.name}</h3>
                                 <p className="text-sm mb-2">₺{product.price}</p>

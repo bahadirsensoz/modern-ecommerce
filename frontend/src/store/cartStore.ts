@@ -18,6 +18,18 @@ const generateSessionId = () => {
     return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
 }
 
+interface ApiCartItem {
+    product: {
+        _id: string
+        name: string
+        price: number
+        image?: string | string[]
+    }
+    quantity: number
+    size?: string
+    color?: string
+}
+
 export const useCartStore = create<CartStore>()(
     persist(
         (set, get) => ({
@@ -42,12 +54,12 @@ export const useCartStore = create<CartStore>()(
                         if (res.ok) {
                             const data = await res.json()
                             if (data?.items) {
-                                const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                                const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                     product: {
                                         _id: item.product._id,
                                         name: item.product.name,
                                         price: item.product.price,
-                                        image: item.product.image?.[0] || item.product.image
+                                        image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                     },
                                     quantity: item.quantity,
                                     size: item.size,
@@ -73,12 +85,12 @@ export const useCartStore = create<CartStore>()(
                         if (res.ok) {
                             const data = await res.json()
                             if (data?.items) {
-                                const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                                const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                     product: {
                                         _id: item.product._id,
                                         name: item.product.name,
                                         price: item.product.price,
-                                        image: item.product.image?.[0] || item.product.image
+                                        image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                     },
                                     quantity: item.quantity,
                                     size: item.size,
@@ -118,12 +130,12 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                 product: {
                                     _id: item.product._id,
                                     name: item.product.name,
                                     price: item.product.price,
-                                    image: item.product.image?.[0] || item.product.image
+                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                 },
                                 quantity: item.quantity,
                                 size: item.size,
@@ -165,12 +177,12 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                 product: {
                                     _id: item.product._id,
                                     name: item.product.name,
                                     price: item.product.price,
-                                    image: item.product.image?.[0] || item.product.image
+                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                 },
                                 quantity: item.quantity,
                                 size: item.size,
@@ -225,12 +237,12 @@ export const useCartStore = create<CartStore>()(
                         }
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                 product: {
                                     _id: item.product._id,
                                     name: item.product.name,
                                     price: item.product.price,
-                                    image: item.product.image?.[0] || item.product.image
+                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                 },
                                 quantity: item.quantity,
                                 size: item.size,
@@ -270,12 +282,12 @@ export const useCartStore = create<CartStore>()(
                         }
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                 product: {
                                     _id: item.product._id,
                                     name: item.product.name,
                                     price: item.product.price,
-                                    image: item.product.image?.[0] || item.product.image
+                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                 },
                                 quantity: item.quantity,
                                 size: item.size,
@@ -321,12 +333,12 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                 product: {
                                     _id: item.product._id,
                                     name: item.product.name,
                                     price: item.product.price,
-                                    image: item.product.image?.[0] || item.product.image
+                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                 },
                                 quantity: item.quantity,
                                 size: item.size,
@@ -355,12 +367,12 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: any) => ({
+                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
                                 product: {
                                     _id: item.product._id,
                                     name: item.product.name,
                                     price: item.product.price,
-                                    image: item.product.image?.[0] || item.product.image
+                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
                                 },
                                 quantity: item.quantity,
                                 size: item.size,

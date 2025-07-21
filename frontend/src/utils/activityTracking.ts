@@ -6,7 +6,7 @@ export const trackActivity = async (activityData: {
     productId?: string
     categoryId?: string
     searchQuery?: string
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
 }) => {
     try {
         const { isAuthenticated, token, user } = useAuthStore.getState()

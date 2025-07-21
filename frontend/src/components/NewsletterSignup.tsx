@@ -22,9 +22,14 @@ export default function NewsletterSignup() {
             setIsSuccess(true)
             setMessage(response.data.message)
             setEmail('')
-        } catch (error: any) {
-            setIsSuccess(false)
-            setMessage(error.response?.data?.message || 'Failed to subscribe to newsletter')
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                setIsSuccess(false)
+                setMessage(error.response?.data?.message || 'Failed to subscribe to newsletter')
+            } else {
+                setIsSuccess(false)
+                setMessage('Failed to subscribe to newsletter')
+            }
         } finally {
             setLoading(false)
         }
@@ -60,8 +65,8 @@ export default function NewsletterSignup() {
 
                 {message && (
                     <div className={`mt-4 p-3 rounded-lg text-center ${isSuccess
-                            ? 'bg-green-500/20 text-green-100 border border-green-500/30'
-                            : 'bg-red-500/20 text-red-100 border border-red-500/30'
+                        ? 'bg-green-500/20 text-green-100 border border-green-500/30'
+                        : 'bg-red-500/20 text-red-100 border border-red-500/30'
                         }`}>
                         {message}
                     </div>
