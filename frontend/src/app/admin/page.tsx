@@ -10,7 +10,7 @@ export default function AdminDashboardPage() {
         <AdminGuard>
             <div className="p-6 max-w-4xl mx-auto">
                 <h1 className="text-5xl font-black mb-8 transform -rotate-2">ADMIN PANEL</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <button
                         onClick={() => router.push('/admin/products')}
                         className="p-8 bg-blue-400 border-4 border-black text-white font-black text-2xl hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
@@ -34,6 +34,18 @@ export default function AdminDashboardPage() {
                         className="p-8 bg-pink-400 border-4 border-black text-white font-black text-2xl hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
                     >
                         ⭐ REVIEW APPROVALS
+                    </button>
+                    <button
+                        onClick={() => router.push('/admin/newsletter')}
+                        className="p-8 bg-purple-400 border-4 border-black text-white font-black text-2xl hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
+                    >
+                        📧 NEWSLETTER
+                    </button>
+                    <button
+                        onClick={() => router.push('/admin/dashboard')}
+                        className="p-8 bg-red-400 border-4 border-black text-white font-black text-2xl hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 transform hover:-translate-y-1"
+                    >
+                        📊 DASHBOARD
                     </button>
                 </div>
             </div>

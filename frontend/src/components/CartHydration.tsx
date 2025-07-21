@@ -2,62 +2,23 @@
 
 import { useEffect } from 'react'
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
 import { CartItem } from '@/types'
 
 export default function CartHydration() {
-    const { setCart } = useCartStore()
+    const { syncCart } = useCartStore()
+    const { isAuthenticated, token } = useAuthStore()
 
     useEffect(() => {
-        const fetchCart = async () => {
-            const wasCleared = localStorage.getItem('cartCleared')
-            if (wasCleared) {
-                localStorage.removeItem('cartCleared')
-                setCart([])
-                return
-            }
-
-            const token = localStorage.getItem('token')
-
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
-                    headers: {
-                        ...(token && {
-                            Authorization: `Bearer ${token}`
-                        })
-                    },
-                    credentials: 'include'
-                })
-
-                if (!res.ok) {
-                    throw new Error('Failed to fetch cart')
-                }
-
-                const data = await res.json()
-
-                if (!data?.items?.length) {
-                    setCart([])
-                    return
-                }
-
-                const formattedItems = data.items.map((item: CartItem) => ({
-                    productId: item.product._id,
-                    name: item.product.name,
-                    price: item.product.price,
-                    image: item.product.image,
-                    quantity: item.quantity,
-                    size: item.size,
-                    color: item.color
-                }))
-
-                setCart(formattedItems)
-            } catch (error) {
-                console.error('Failed to fetch cart:', error)
-                setCart([])
-            }
+        const wasCleared = localStorage.getItem('cartCleared')
+        if (wasCleared) {
+            localStorage.removeItem('cartCleared')
+            useCartStore.getState().clearCart()
+            return
         }
 
-        fetchCart()
-    }, [setCart])
+        syncCart(token || undefined)
+    }, [syncCart, token])
 
     return null
 }

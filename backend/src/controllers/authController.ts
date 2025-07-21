@@ -1,9 +1,17 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
 import { User } from '../models/User'
-import { generateToken } from '../utils/generateToken'
 import { sendEmail } from '../utils/mailer'
+
+
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+const JWT_SECRET = process.env.JWT_SECRET as string
+
+if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not defined in environment variables')
+}
 
 // Register
 export const registerUser = async (req: Request, res: Response) => {
@@ -32,7 +40,7 @@ export const registerUser = async (req: Request, res: Response) => {
             emailVerified: false
         })
 
-        const verificationUrl = `http://localhost:3000/verify?token=${verificationToken}`
+        const verificationUrl = `${frontendUrl}/verify?token=${verificationToken}`
         await sendEmail(
             newUser.email,
             'Verify Your Email',
@@ -79,8 +87,8 @@ export const verifyEmail = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body
-        const user = await User.findOne({ email })
 
+        const user = await User.findOne({ email })
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' })
         }
@@ -94,18 +102,29 @@ export const loginUser = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Please verify your email first.' })
         }
 
-        const token = generateToken(user._id.toString())
-        return res.status(200).json({
-            user: {
-                id: user._id,
-                email: user.email,
-                role: user.role
-            },
-            token
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+            expiresIn: '30d'
         })
-    } catch (err) {
-        console.error(err)
-        return res.status(500).json({ message: 'Internal server error' })
+
+        res.json({
+            token,
+            user: {
+                _id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone,
+                role: user.role,
+                addresses: user.addresses || [],
+                favorites: user.favorites || [],
+                emailVerified: user.emailVerified,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            }
+        })
+    } catch (error) {
+        console.error('Login error:', error)
+        res.status(500).json({ message: 'Server error' })
     }
 }
 
@@ -124,7 +143,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
         await user.save()
 
-        const resetUrl = `http://localhost:3000/reset-password?token=${token}`
+        const resetUrl = `${frontendUrl}/reset-password?token=${token}`
         await sendEmail(
             user.email,
             'Reset Your Password',

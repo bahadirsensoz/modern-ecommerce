@@ -3,19 +3,35 @@
 import AdminGuard from '@/components/guards/AdminGuard'
 import { useEffect, useState } from 'react'
 import { Product } from '@/types'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function AdminReviewsPage() {
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState('')
+    const { isAuthenticated, token } = useAuthStore()
 
     const fetchProducts = async () => {
         try {
-            const token = localStorage.getItem('token')
+            if (!isAuthenticated || !token) {
+                console.error('No authentication token found')
+                return
+            }
+
+            logTokenInfo(token, 'AdminReviewsFetch')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AdminReviewsFetch')
+                return
+            }
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/reviews/pending`, {
                 headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             })
             if (!res.ok) {
                 throw new Error('Failed to fetch pending reviews')
@@ -35,12 +51,29 @@ export default function AdminReviewsPage() {
     const handleApproveReview = async (productId: string, reviewId: string) => {
         try {
             setLoading(true)
-            const token = localStorage.getItem('token')
+
+            if (!isAuthenticated || !token) {
+                setMessage('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
+
+            logTokenInfo(token, 'AdminApproveReview')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AdminApproveReview')
+                setMessage('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/reviews/${reviewId}/approve`, {
                 method: 'PUT',
                 headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             })
 
             if (res.ok) {
@@ -59,12 +92,29 @@ export default function AdminReviewsPage() {
     const handleRejectReview = async (productId: string, reviewId: string) => {
         try {
             setLoading(true)
-            const token = localStorage.getItem('token')
+
+            if (!isAuthenticated || !token) {
+                setMessage('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
+
+            logTokenInfo(token, 'AdminRejectReview')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AdminRejectReview')
+                setMessage('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/reviews/${reviewId}`, {
                 method: 'DELETE',
                 headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             })
 
             if (res.ok) {

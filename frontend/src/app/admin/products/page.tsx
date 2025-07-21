@@ -5,6 +5,8 @@ import { Category, Product } from '@/types'
 import { getCategoryName } from '@/utils/getCategoryName'
 import AdminGuard from '@/components/guards/AdminGuard'
 import Image from 'next/image'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([])
@@ -16,6 +18,7 @@ export default function AdminProductsPage() {
     const [imageFiles, setImageFiles] = useState<FileList | null>(null)
     const [categoryId, setCategoryId] = useState('')
     const [message, setMessage] = useState('')
+    const { isAuthenticated, token } = useAuthStore()
 
     useEffect(() => {
         fetchProducts()
@@ -44,7 +47,19 @@ export default function AdminProductsPage() {
                 return
             }
 
-            const token = localStorage.getItem('token')
+            if (!isAuthenticated || !token) {
+                setMessage('Authentication error. Please login again.')
+                return
+            }
+
+            logTokenInfo(token, 'AdminCreateProduct')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AdminCreateProduct')
+                setMessage('Authentication error. Please login again.')
+                return
+            }
+
             const formData = new FormData()
 
             formData.append('name', name.trim())
@@ -63,6 +78,7 @@ export default function AdminProductsPage() {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                credentials: 'include',
                 body: formData
             })
 
@@ -87,12 +103,25 @@ export default function AdminProductsPage() {
     }
 
     const handleDelete = async (id: string) => {
-        const token = localStorage.getItem('token')
+        if (!isAuthenticated || !token) {
+            console.error('No authentication token found')
+            return
+        }
+
+        logTokenInfo(token, 'AdminDeleteProduct')
+
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in AdminDeleteProduct')
+            return
+        }
+
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
             method: 'DELETE',
             headers: {
                 Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
             },
+            credentials: 'include'
         })
         fetchProducts()
     }

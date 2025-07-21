@@ -7,9 +7,12 @@ import axios from 'axios'
 import { Order } from '@/types'
 import OrderStatusTracker from '@/components/OrderStatusTracker'
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 const OrderDetailsPage = () => {
     const { id } = useParams()
+    const { isAuthenticated, token } = useAuthStore()
     const [order, setOrder] = useState<Order | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -18,16 +21,28 @@ const OrderDetailsPage = () => {
 
     useEffect(() => {
         const fetchOrder = async () => {
-            const token = localStorage.getItem('token')
-            const sessionId = localStorage.getItem('sessionId')
+            if (!isAuthenticated || !token) {
+                setError('Authentication required')
+                setLoading(false)
+                return
+            }
+
+            logTokenInfo(token, 'OrderDetail')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in OrderDetail')
+                setError('Authentication error. Please login again.')
+                setLoading(false)
+                return
+            }
 
             try {
                 const { data } = await axios.get<Order>(
                     `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`,
                     {
                         headers: {
-                            ...(token && { Authorization: `Bearer ${token}` }),
-                            ...(sessionId && { 'X-Session-Id': sessionId })
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json'
                         },
                         withCredentials: true
                     }
@@ -55,30 +70,42 @@ const OrderDetailsPage = () => {
         setError('')
 
         try {
-            const token = localStorage.getItem('token')
-            const sessionId = localStorage.getItem('sessionId')
+            if (!isAuthenticated || !token) {
+                setError('Authentication error. Please login again.')
+                setPaymentLoading(false)
+                return
+            }
+
+            logTokenInfo(token, 'OrderPayment')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in OrderPayment')
+                setError('Authentication error. Please login again.')
+                setPaymentLoading(false)
+                return
+            }
 
             const { data } = await axios.post(
                 `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/pay`,
                 {},
                 {
                     headers: {
-                        ...(token && { Authorization: `Bearer ${token}` }),
-                        ...(sessionId && { 'X-Session-Id': sessionId })
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     },
                     withCredentials: true
                 }
             )
 
-            if (token || sessionId) {
+            if (isAuthenticated && token) {
                 try {
                     await axios.post(
                         `${process.env.NEXT_PUBLIC_API_URL}/cart/clear`,
                         {},
                         {
                             headers: {
-                                ...(token && { Authorization: `Bearer ${token}` }),
-                                ...(sessionId && { 'X-Session-Id': sessionId })
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json'
                             },
                             withCredentials: true
                         }
@@ -124,32 +151,51 @@ const OrderDetailsPage = () => {
             <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-2">Items</h2>
                 <ul className="space-y-4">
-                    {order.orderItems.map((item) => (
-                        <li key={item._id} className="flex items-center border p-4 rounded-lg shadow-sm">
-                            {item.product.image && (
-                                <div className="w-20 h-20 relative mr-4">
-                                    <Image
-                                        src={item.product.image}
-                                        alt={item.product.name}
-                                        fill
-                                        className="object-cover rounded"
-                                    />
+                    {order.orderItems.map((item) => {
+                        // Handle case where product data is missing
+                        if (!item.product) {
+                            return (
+                                <li key={item._id} className="flex items-center border p-4 rounded-lg shadow-sm bg-gray-100">
+                                    <div className="flex-grow">
+                                        <h3 className="font-medium text-gray-500">Product not available</h3>
+                                        <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                        {item.size && <p className="text-sm text-gray-600">Size: {item.size}</p>}
+                                        {item.color && <p className="text-sm text-gray-600">Color: {item.color}</p>}
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-medium text-gray-500">Price unavailable</p>
+                                    </div>
+                                </li>
+                            )
+                        }
+
+                        return (
+                            <li key={item._id} className="flex items-center border p-4 rounded-lg shadow-sm">
+                                {item.product.image && (
+                                    <div className="w-20 h-20 relative mr-4">
+                                        <Image
+                                            src={item.product.image}
+                                            alt={item.product.name || 'Product image'}
+                                            fill
+                                            className="object-cover rounded"
+                                        />
+                                    </div>
+                                )}
+                                <div className="flex-grow">
+                                    <h3 className="font-medium">{item.product.name || 'Unnamed Product'}</h3>
+                                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                    {item.size && <p className="text-sm text-gray-600">Size: {item.size}</p>}
+                                    {item.color && <p className="text-sm text-gray-600">Color: {item.color}</p>}
                                 </div>
-                            )}
-                            <div className="flex-grow">
-                                <h3 className="font-medium">{item.product.name}</h3>
-                                <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                                {item.size && <p className="text-sm text-gray-600">Size: {item.size}</p>}
-                                {item.color && <p className="text-sm text-gray-600">Color: {item.color}</p>}
-                            </div>
-                            <div className="text-right">
-                                <p className="font-medium">${item.product.price.toFixed(2)}</p>
-                                <p className="text-sm text-gray-600">
-                                    Subtotal: ${(item.product.price * item.quantity).toFixed(2)}
-                                </p>
-                            </div>
-                        </li>
-                    ))}
+                                <div className="text-right">
+                                    <p className="font-medium">${(item.product.price || 0).toFixed(2)}</p>
+                                    <p className="text-sm text-gray-600">
+                                        Subtotal: ${((item.product.price || 0) * item.quantity).toFixed(2)}
+                                    </p>
+                                </div>
+                            </li>
+                        )
+                    })}
                 </ul>
             </div>
 
@@ -158,7 +204,7 @@ const OrderDetailsPage = () => {
                 <div className="space-y-2">
                     <div className="flex justify-between">
                         <span className="text-gray-600">Subtotal:</span>
-                        <span>${order.orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toFixed(2)}</span>
+                        <span>${order.orderItems.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-600">Tax (18%):</span>

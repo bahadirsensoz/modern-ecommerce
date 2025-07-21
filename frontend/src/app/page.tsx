@@ -6,6 +6,7 @@ import { getCategoryName } from '@/utils/getCategoryName'
 import { matchCategory } from '@/utils/matchCategory'
 import { useRouter } from 'next/navigation'
 import ProductCard from '@/components/ProductCard'
+import NewsletterSignup from '@/components/NewsletterSignup'
 import Image from 'next/image'
 
 export default function HomePage() {
@@ -17,11 +18,9 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState('')
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
   const [searchQuery, setSearchQuery] = useState('')
-  const [email, setEmail] = useState('')
   const [page, setPage] = useState(1)
   const ITEMS_PER_PAGE = 9
 
-  console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)
 
   const fetchProducts = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
@@ -40,12 +39,10 @@ export default function HomePage() {
     fetchCategories()
   }, [])
 
-  // Get newest products (last 4 added)
   const newArrivals = [...products]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 4)
 
-  // Get popular products (highest rated)
   const popularProducts = [...products]
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 4)
@@ -71,7 +68,6 @@ export default function HomePage() {
       }
     })
 
-  // Paginate results
   const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE)
   const paginatedProducts = filteredAndSortedProducts.slice(
     (page - 1) * ITEMS_PER_PAGE,
@@ -87,11 +83,7 @@ export default function HomePage() {
     document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // Implement newsletter signup logic here
-    setEmail('')
-  }
+
 
   return (
     <div className="min-h-screen bg-yellow-200">
@@ -254,26 +246,10 @@ export default function HomePage() {
         </section>
 
         {/* Newsletter Section */}
-        <section className="bg-yellow-300 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <form onSubmit={handleNewsletterSubmit} className="max-w-lg mx-auto">
-            <h2 className="text-3xl font-black mb-4">📫 SUBSCRIBE TO OUR NEWSLETTER</h2>
-            <div className="flex gap-4">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 p-3 border-4 border-black font-bold"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-blue-500 text-white px-6 py-3 font-black border-4 border-black hover:bg-blue-600"
-              >
-                SUBSCRIBE
-              </button>
-            </div>
-          </form>
+        <section className="py-16 px-4">
+          <div className="max-w-4xl mx-auto">
+            <NewsletterSignup />
+          </div>
         </section>
       </div>
     </div>

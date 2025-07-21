@@ -14,6 +14,7 @@ router.get('/', getCart)
 router.post('/add', addToCart)
 router.put('/update', updateCartItem)
 router.post('/remove', removeFromCart)
+
 router.post('/clear', protect, clearCart)
 
 export default router

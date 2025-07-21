@@ -6,7 +6,7 @@ export default function HeroBanner() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        alert(`Search for: ${search}`) // replace with real logic later
+        alert(`Search for: ${search}`)
     }
 
     return (

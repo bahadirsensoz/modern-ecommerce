@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import FavoriteButton from '@/components/FavoriteButton'
+import RelatedProducts from '@/components/RelatedProducts'
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
 import Image from 'next/image'
-import { Product, Review, ApiError, CartItem } from '@/types'
+import { Product, Review, ApiError, CartItem, Category } from '@/types'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
+import { trackProductView } from '@/utils/activityTracking'
 
 interface ProductVariant {
     size?: string
@@ -15,7 +19,9 @@ interface ProductVariant {
 export default function ProductDetailPage() {
     const router = useRouter()
     const { id } = useParams()
+    const { isAuthenticated, token } = useAuthStore()
     const [product, setProduct] = useState<Product | null>(null)
+    const [categories, setCategories] = useState<Category[]>([])
     const [selectedSize, setSelectedSize] = useState('')
     const [selectedColor, setSelectedColor] = useState('')
     const [comment, setComment] = useState('')
@@ -30,18 +36,30 @@ export default function ProductDetailPage() {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`)
             const data = await res.json()
             setProduct(data)
+
+            trackProductView(data._id, data.category?._id)
         } catch (error) {
             console.error('Failed to fetch product:', error)
         }
     }
 
     const fetchUser = async () => {
-        const token = localStorage.getItem('token')
-        if (!token) return
+        if (!isAuthenticated || !token) return
+
+        logTokenInfo(token, 'ProductDetail')
+
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in ProductDetail')
+            return
+        }
 
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             })
             const user = await res.json()
             setUserId(user._id)
@@ -50,9 +68,20 @@ export default function ProductDetailPage() {
         }
     }
 
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
+            const data = await res.json()
+            setCategories(data)
+        } catch (error) {
+            console.error('Failed to fetch categories:', error)
+        }
+    }
+
     useEffect(() => {
         fetchProduct()
         fetchUser()
+        fetchCategories()
     }, [id])
 
     useEffect(() => {
@@ -66,7 +95,6 @@ export default function ProductDetailPage() {
         }
     }, [product, userId])
 
-    // Image navigation handlers
     const handleNextImage = () => {
         if (product && product.images && product.images.length > 1) {
             setCurrentImageIndex(prev => (prev + 1) % (product?.images?.length || 1))
@@ -87,9 +115,16 @@ export default function ProductDetailPage() {
         setMessage('')
 
         try {
-            const token = localStorage.getItem('token')
-            if (!token) {
+            if (!isAuthenticated || !token) {
                 setMessage('Please login to submit a review')
+                return
+            }
+
+            logTokenInfo(token, 'ReviewSubmit')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in ReviewSubmit')
+                setMessage('Authentication error. Please login again.')
                 return
             }
 
@@ -99,6 +134,7 @@ export default function ProductDetailPage() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
+                credentials: 'include',
                 body: JSON.stringify({ rating: Number(rating), comment })
             })
 
@@ -121,9 +157,16 @@ export default function ProductDetailPage() {
         if (!confirm('Are you sure you want to delete this review?')) return
 
         try {
-            const token = localStorage.getItem('token')
-            if (!token) {
+            if (!isAuthenticated || !token) {
                 setMessage('Please login to delete your review')
+                return
+            }
+
+            logTokenInfo(token, 'ReviewDelete')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in ReviewDelete')
+                setMessage('Authentication error. Please login again.')
                 return
             }
 
@@ -132,7 +175,8 @@ export default function ProductDetailPage() {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             })
 
             if (!res.ok) {
@@ -177,7 +221,7 @@ export default function ProductDetailPage() {
         }
 
         try {
-            await useCartStore.getState().addItem(cartItem)
+            await useCartStore.getState().addItem(cartItem, token || undefined)
             alert('Added to cart!')
         } catch (error) {
             console.error('Add to cart error:', error)
@@ -185,7 +229,6 @@ export default function ProductDetailPage() {
         }
     }
 
-    // Calculate average rating from approved reviews
     const averageRating = product?.reviews?.length
         ? (product.reviews
             .filter(r => r.isApproved)
@@ -319,7 +362,7 @@ export default function ProductDetailPage() {
                             }
 
                             try {
-                                await useCartStore.getState().addItem(newItem)
+                                await useCartStore.getState().addItem(newItem, token || undefined)
                                 alert('Added to cart!')
                             } catch (error) {
                                 console.error('Add to cart error:', error)
@@ -343,7 +386,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Reviews */}
-            <div className="mt-12 bg-yellow-200 border-4 border-black p-6">
+            <div className="mt-12 bg-yellow-500 border-4 border-black p-6">
                 <h2 className="text-3xl font-black mb-6">CUSTOMER REVIEWS</h2>
 
                 {/* Show message if review is pending approval */}
@@ -375,7 +418,7 @@ export default function ProductDetailPage() {
                                 <div className="flex gap-2 mt-2">
                                     <button
                                         onClick={() => handleEditClick(review)}
-                                        className="text-sm px-2 py-1 bg-yellow-400 border-2 border-black font-black"
+                                        className="text-sm px-2 py-1 bg-yellow-500 border-2 border-black font-black"
                                     >
                                         Edit
                                     </button>
@@ -452,6 +495,13 @@ export default function ProductDetailPage() {
                     </form>
                 </div>
             </div>
+
+            {/* Related Products */}
+            {product && categories.length > 0 && (
+                <>
+                    <RelatedProducts productId={product._id} categories={categories} />
+                </>
+            )}
         </div>
     )
 }

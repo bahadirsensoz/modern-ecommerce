@@ -4,18 +4,36 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AddOrEditAddressModal from '@/components/AddOrEditAddressModal'
 import { Address } from '@/types'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function AddressesPage() {
     const router = useRouter()
+    const { isAuthenticated, token } = useAuthStore()
     const [addresses, setAddresses] = useState<Address[]>([])
     const [selected, setSelected] = useState<(Address & { index?: number }) | null>(null)
     const [showModal, setShowModal] = useState(false)
 
     const fetchAddresses = async () => {
         try {
-            const token = localStorage.getItem('token')
+            if (!isAuthenticated || !token) {
+                console.error('No authentication token found')
+                return
+            }
+
+            logTokenInfo(token, 'AddressesFetch')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AddressesFetch')
+                return
+            }
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             })
             if (!res.ok) throw new Error('Failed to fetch addresses')
             const user = await res.json()
@@ -31,9 +49,15 @@ export default function AddressesPage() {
 
     const saveAddresses = async (newAddresses: Address[]) => {
         try {
-            const token = localStorage.getItem('token')
-            if (!token) {
+            if (!isAuthenticated || !token) {
                 throw new Error('No authentication token found')
+            }
+
+            logTokenInfo(token, 'AddressesSave')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AddressesSave')
+                throw new Error('Authentication error. Please login again.')
             }
 
             const validAddresses = newAddresses.map(addr => ({
@@ -51,6 +75,7 @@ export default function AddressesPage() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
+                credentials: 'include',
                 body: JSON.stringify({ addresses: validAddresses }),
             })
 

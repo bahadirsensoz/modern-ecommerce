@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import AdminGuard from '@/components/guards/AdminGuard'
 import axios, { AxiosError } from 'axios'
 import { Order, OrderItem } from '@/types'
+import { useAuthStore } from '@/store/authStore'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 
 const orderStatuses = ['pending', 'processing', 'shipped', 'delivered']
@@ -12,6 +14,7 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string>('')
+    const { isAuthenticated, token } = useAuthStore()
 
     useEffect(() => {
         fetchOrders()
@@ -22,15 +25,23 @@ export default function AdminOrdersPage() {
             setLoading(true)
             setError('')
 
-            const token = localStorage.getItem('token')
-            if (!token) {
+            if (!isAuthenticated || !token) {
                 throw new Error('No authentication token found')
+            }
+
+            logTokenInfo(token, 'AdminOrdersFetch')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AdminOrdersFetch')
+                throw new Error('Authentication error. Please login again.')
             }
 
             const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/all`, {
                 headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true
             })
             setOrders(data)
         } catch (error: unknown) {
@@ -44,14 +55,28 @@ export default function AdminOrdersPage() {
 
     const updateOrderStatus = async (orderId: string, status: string) => {
         try {
-            const token = localStorage.getItem('token')
+            if (!isAuthenticated || !token) {
+                setError('Authentication error. Please login again.')
+                return
+            }
+
+            logTokenInfo(token, 'AdminUpdateOrderStatus')
+
+            if (!isValidJWT(token)) {
+                console.error('Invalid JWT token in AdminUpdateOrderStatus')
+                setError('Authentication error. Please login again.')
+                return
+            }
+
             await axios.put(
                 `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`,
                 { status },
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
                 }
             )
             fetchOrders()
@@ -101,8 +126,12 @@ export default function AdminOrdersPage() {
                             <div className="space-y-2">
                                 {order.orderItems.map((item: OrderItem) => (
                                     <div key={item._id} className="flex justify-between items-center border-t pt-2">
-                                        <span>{item.product.name} x {item.quantity}</span>
-                                        <span className="font-bold">${item.product.price * item.quantity}</span>
+                                        <span>
+                                            {item.product ? item.product.name : 'Product not available'} x {item.quantity}
+                                        </span>
+                                        <span className="font-bold">
+                                            ${((item.product?.price || 0) * item.quantity).toFixed(2)}
+                                        </span>
                                     </div>
                                 ))}
                                 <div className="border-t pt-2 font-bold">

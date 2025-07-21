@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { FaHeart, FaShoppingCart } from 'react-icons/fa'
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
 import { CartItem } from '@/types'
 
 
@@ -19,86 +20,32 @@ function safeJSONParse<T>(raw: string | null, fallback: T): T {
 
 export default function Navbar() {
     const router = useRouter()
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
-    const [isAdmin, setIsAdmin] = useState(false)
+    const { isAuthenticated, user, logout, checkAuth, token } = useAuthStore()
     const [showDropdown, setShowDropdown] = useState(false)
-    const [loading, setLoading] = useState(true)
-    const [isHydrated, setIsHydrated] = useState(false)
-    const { items, setCart } = useCartStore()
+    const { items, syncCart } = useCartStore()
 
     const totalItems = items.reduce((acc, i) => acc + i.quantity, 0)
+    const isAdmin = user?.role === 'admin'
 
-    const checkAuthAndCart = async () => {
-        const token = localStorage.getItem('token')
-        setLoading(true)
-
+    const syncCartWithAuth = async () => {
         try {
-            if (!token) {
-                const guestCart = safeJSONParse(localStorage.getItem('cart'), [])
-                setCart(guestCart)
-                setIsLoggedIn(false)
-                setIsAdmin(false)
-                setLoading(false)
+            if (!isAuthenticated) {
+                await syncCart()
                 return
             }
 
-            const authRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            })
-
-            if (!authRes.ok) {
-                throw new Error('Authentication failed')
-            }
-
-            const user = await authRes.json()
-            setIsLoggedIn(true)
-            setIsAdmin(user.role === 'admin')
-
-            try {
-                const cartRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
-                })
-
-                if (cartRes.ok) {
-                    const cartData = await cartRes.json()
-                    const cartItems = cartData.items?.map((item: CartItem) => ({
-                        productId: item.product._id,
-                        name: item.product.name,
-                        price: item.product.price,
-                        image: item.product.image?.[0] || '/placeholder.jpg',
-                        quantity: item.quantity
-                    })) || []
-                    setCart(cartItems)
-                }
-            } catch (cartError) {
-                console.error('Cart fetch failed:', cartError)
-                setCart([])
-            }
+            await syncCart(token || undefined)
         } catch (error) {
-            console.error('Auth check failed:', error)
-            localStorage.removeItem('token')
-            setIsLoggedIn(false)
-            setIsAdmin(false)
-            setCart([])
-        } finally {
-            setLoading(false)
+            console.error('Cart sync failed:', error)
         }
     }
 
     useEffect(() => {
         const handleAuthChange = () => {
-            checkAuthAndCart()
+            syncCartWithAuth()
         }
 
-        checkAuthAndCart()
+        syncCartWithAuth()
 
         window.addEventListener('storage', handleAuthChange)
         window.addEventListener('auth-change', handleAuthChange)
@@ -107,19 +54,11 @@ export default function Navbar() {
             window.removeEventListener('storage', handleAuthChange)
             window.removeEventListener('auth-change', handleAuthChange)
         }
-    }, [])
-
-    useEffect(() => {
-        setIsHydrated(true)
-    }, [])
+    }, [syncCart, isAuthenticated, token])
 
     const handleLogout = () => {
-        localStorage.removeItem('token')
-        setIsLoggedIn(false)
-        setIsAdmin(false)
+        logout()
         setShowDropdown(false)
-        window.dispatchEvent(new Event('storage'))
-        window.dispatchEvent(new Event('auth-change'))
         router.push('/')
     }
 
@@ -143,7 +82,7 @@ export default function Navbar() {
                                 title="Cart"
                             >
                                 <FaShoppingCart />
-                                {isHydrated && totalItems > 0 && (
+                                {totalItems > 0 && (
                                     <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
                                         {totalItems}
                                     </span>
@@ -151,7 +90,7 @@ export default function Navbar() {
                             </button>
                         </div>
 
-                        {isLoggedIn ? (
+                        {isAuthenticated ? (
                             <>
                                 <button
                                     onClick={() => router.push('/favorites')}

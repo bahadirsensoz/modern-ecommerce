@@ -8,7 +8,7 @@ import {
     addProductReview,
     deleteProductReview,
     approveReview,
-    getPendingReviews, // Add this import
+    getPendingReviews,
 } from '../controllers/productController'
 import { protect } from '../middleware/authMiddleware'
 import { adminOnly } from '../middleware/adminOnly'
@@ -24,7 +24,7 @@ router.delete('/:id', protect, adminOnly, deleteProduct)
 router.post('/:id/reviews', protect, addProductReview)
 router.delete('/:id/reviews', protect, deleteProductReview)
 router.put('/:productId/reviews/:reviewId/approve', protect, adminOnly, approveReview)
-router.get('/reviews/pending', protect, adminOnly, getPendingReviews) // Add new route for getting pending reviews (admin only)
+router.get('/reviews/pending', protect, adminOnly, getPendingReviews)
 
 
 export default router
