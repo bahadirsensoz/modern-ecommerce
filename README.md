@@ -91,7 +91,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ### 1. Start MongoDB
 Make sure your MongoDB server is running.
 
-### 3. Start the Backend
+### 2. Start the Backend
 ```bash
 npm run dev
 # or for production
@@ -99,7 +99,7 @@ npm run build
 npm start
 ```
 
-### 4. Start the Frontend
+### 3. Start the Frontend
 ```bash
 cd ../frontend
 npm run dev
@@ -186,7 +186,7 @@ Content-Type: application/json
 - Use a process manager (e.g., PM2) or Docker for backend.
 - Serve frontend with Vercel, Netlify, or Node.js.
 - Use HTTPS and secure CORS settings in production.
-- [Live Demo](https://modern-ecommerce-murex.vercel.app) *(replace with your actual link)*
+- [Live Demo](https://modern-ecommerce-murex.vercel.app)
 
 ---
 
