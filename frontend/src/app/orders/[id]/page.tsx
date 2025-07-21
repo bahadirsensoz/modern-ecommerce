@@ -13,25 +13,28 @@ import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 const OrderDetailsPage = () => {
     const { id } = useParams()
     const { isAuthenticated, token } = useAuthStore()
+    const { sessionId, clearCart } = useCartStore()
     const [order, setOrder] = useState<Order | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [paymentLoading, setPaymentLoading] = useState(false)
-    const { clearCart } = useCartStore()
 
     useEffect(() => {
         const fetchOrder = async () => {
-            if (!isAuthenticated || !token) {
-                setError('Authentication required')
-                setLoading(false)
-                return
-            }
-
-            logTokenInfo(token, 'OrderDetail')
-
-            if (!isValidJWT(token)) {
-                console.error('Invalid JWT token in OrderDetail')
-                setError('Authentication error. Please login again.')
+            // Prepare headers for both auth and guest
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+            if (isAuthenticated && token) {
+                logTokenInfo(token, 'OrderDetail')
+                if (!isValidJWT(token)) {
+                    setError('Authentication error. Please login again.')
+                    setLoading(false)
+                    return
+                }
+                headers['Authorization'] = `Bearer ${token}`
+            } else if (sessionId) {
+                headers['x-session-id'] = sessionId
+            } else {
+                setError('Session not found. Please try again from the device you placed the order.')
                 setLoading(false)
                 return
             }
@@ -40,10 +43,7 @@ const OrderDetailsPage = () => {
                 const { data } = await axios.get<Order>(
                     `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`,
                     {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
+                        headers,
                         withCredentials: true
                     }
                 )
@@ -53,7 +53,6 @@ const OrderDetailsPage = () => {
                 const errorMessage = axios.isAxiosError(error)
                     ? error.response?.data?.message || 'Failed to load order'
                     : 'Failed to load order';
-                console.error('Failed to fetch order:', error)
                 setError(errorMessage)
             } finally {
                 setLoading(false)
@@ -63,24 +62,27 @@ const OrderDetailsPage = () => {
         if (id) {
             fetchOrder()
         }
-    }, [id])
+    }, [id, isAuthenticated, token, sessionId])
 
     const handlePayment = async () => {
         setPaymentLoading(true)
         setError('')
 
         try {
-            if (!isAuthenticated || !token) {
-                setError('Authentication error. Please login again.')
-                setPaymentLoading(false)
-                return
-            }
-
-            logTokenInfo(token, 'OrderPayment')
-
-            if (!isValidJWT(token)) {
-                console.error('Invalid JWT token in OrderPayment')
-                setError('Authentication error. Please login again.')
+            // Prepare headers for both auth and guest
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+            if (isAuthenticated && token) {
+                logTokenInfo(token, 'OrderPayment')
+                if (!isValidJWT(token)) {
+                    setError('Authentication error. Please login again.')
+                    setPaymentLoading(false)
+                    return
+                }
+                headers['Authorization'] = `Bearer ${token}`
+            } else if (sessionId) {
+                headers['x-session-id'] = sessionId
+            } else {
+                setError('Session not found. Please try again from the device you placed the order.')
                 setPaymentLoading(false)
                 return
             }
@@ -89,14 +91,12 @@ const OrderDetailsPage = () => {
                 `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/pay`,
                 {},
                 {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers,
                     withCredentials: true
                 }
             )
 
+            // Only try to clear cart for logged-in users
             if (isAuthenticated && token) {
                 try {
                     await axios.post(
@@ -111,7 +111,7 @@ const OrderDetailsPage = () => {
                         }
                     )
                 } catch (err) {
-                    console.error('Failed to clear cart:', err)
+                    // Ignore cart clear error for guests
                 }
             }
 
@@ -121,7 +121,6 @@ const OrderDetailsPage = () => {
 
             setOrder(data.order)
         } catch (error: unknown) {
-            console.error('Payment failed:', error)
             setError(axios.isAxiosError(error) ? error.response?.data?.message || 'Payment processing failed' : 'Payment processing failed')
         } finally {
             setPaymentLoading(false)
