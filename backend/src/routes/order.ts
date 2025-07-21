@@ -18,7 +18,7 @@ router.get('/me', protect, getMyOrders)
 
 router.post('/', placeOrder)
 router.get('/:id', getOrder)
-router.post('/:id/pay', protect, simulatePayment)
+router.post('/:id/pay', simulatePayment)
 router.put('/:id/status', protect, adminOnly, updateOrderStatus)
 
 export default router
