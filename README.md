@@ -77,7 +77,6 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 EMAIL_USER=your_email@example.com
 EMAIL_PASS=your_email_password
-OPENAI_API_KEY=your_openai_key
 ```
 
 #### Example: `frontend/.env`
