@@ -24,12 +24,10 @@ export interface Product {
         name: string
         description?: string
     }
-    variants: Array<{
-        size?: string
-        color?: string
-    }>
+    variants: Array<Record<string, string>> // allow dynamic variant keys
     tags: string[]
     isFeatured: boolean
+    isActive: boolean
     specifications: Record<string, unknown>
     reviews: Review[]
     rating: number

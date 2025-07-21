@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import ProductCard from '@/components/ProductCard'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import Image from 'next/image'
+import { useAuthStore } from '@/store/authStore'
 
 export default function HomePage() {
   const router = useRouter()
@@ -20,6 +21,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
   const ITEMS_PER_PAGE = 9
+
+  const { isAuthenticated, token } = useAuthStore()
 
 
   const fetchProducts = async () => {
@@ -37,7 +40,7 @@ export default function HomePage() {
   useEffect(() => {
     fetchProducts()
     fetchCategories()
-  }, [])
+  }, [isAuthenticated, token])
 
   const newArrivals = [...products]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -80,7 +83,10 @@ export default function HomePage() {
 
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId)
-    document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })
+    setPage(1)
+    setTimeout(() => {
+      document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
   }
 
 
@@ -212,6 +218,32 @@ export default function HomePage() {
               >
                 {viewMode === 'grid' ? '📝 List View' : '📱 Grid View'}
               </button>
+            </div>
+
+            {/* Category dropdown filter */}
+            <div className="flex gap-4 items-center mb-4">
+              <label className="font-bold">Category:</label>
+              <select
+                value={selectedCategory}
+                onChange={e => {
+                  setSelectedCategory(e.target.value)
+                  setPage(1)
+                }}
+                className="p-3 border-4 border-black font-bold bg-white"
+              >
+                <option value="">All Categories</option>
+                {categories.map(cat => (
+                  <option key={cat._id} value={cat._id}>{cat.name}</option>
+                ))}
+              </select>
+              {selectedCategory && (
+                <button
+                  onClick={() => setSelectedCategory('')}
+                  className="ml-2 px-3 py-1 bg-gray-300 border-2 border-black font-bold"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             {/* Products Grid/List */}

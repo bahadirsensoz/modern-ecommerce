@@ -9,6 +9,7 @@ import {
     deleteProductReview,
     approveReview,
     getPendingReviews,
+    bulkActivateProducts
 } from '../controllers/productController'
 import { protect } from '../middleware/authMiddleware'
 import { adminOnly } from '../middleware/adminOnly'
@@ -17,6 +18,8 @@ import { upload } from '../middleware/uploadMiddleware'
 const router = express.Router()
 
 router.get('/', getProducts)
+router.get('/admin', protect, adminOnly, getProducts)
+router.put('/bulk-activate', protect, adminOnly, bulkActivateProducts)
 router.get('/:id', getProductById)
 router.post('/', protect, adminOnly, upload.array('images', 5), createProduct)
 router.put('/:id', protect, adminOnly, upload.array('images', 5), updateProduct)
