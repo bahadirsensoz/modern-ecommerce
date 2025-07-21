@@ -15,7 +15,8 @@ export const getRecommendations = async (req: Request, res: Response) => {
             if (product && product.category) {
                 recommendations = await Product.find({
                     _id: { $ne: productId },
-                    category: product.category._id
+                    category: product.category._id,
+                    isActive: true
                 })
                     .populate('category')
                     .sort({ rating: -1 })
@@ -25,7 +26,7 @@ export const getRecommendations = async (req: Request, res: Response) => {
         }
         // If browsing a category, get popular products from that category
         else if (categoryId) {
-            recommendations = await Product.find({ category: categoryId })
+            recommendations = await Product.find({ category: categoryId, isActive: true })
                 .populate('category')
                 .sort({ rating: -1 })
                 .limit(Number(limit))
@@ -48,7 +49,8 @@ export const getRecommendations = async (req: Request, res: Response) => {
 
             if (interestedCategories.length > 0) {
                 recommendations = await Product.find({
-                    category: { $in: interestedCategories }
+                    category: { $in: interestedCategories },
+                    isActive: true
                 })
                     .populate('category')
                     .sort({ rating: -1 })
@@ -87,7 +89,8 @@ export const getRecommendations = async (req: Request, res: Response) => {
                 if (categories.length > 0) {
                     recommendations = await Product.find({
                         category: { $in: categories },
-                        _id: { $nin: viewedProductIds }
+                        _id: { $nin: viewedProductIds },
+                        isActive: true
                     })
                         .populate('category')
                         .sort({ rating: -1 })
@@ -98,7 +101,7 @@ export const getRecommendations = async (req: Request, res: Response) => {
         }
 
         if (recommendations.length === 0) {
-            recommendations = await Product.find()
+            recommendations = await Product.find({ isActive: true })
                 .populate('category')
                 .sort({ rating: -1 })
                 .limit(Number(limit))
@@ -116,7 +119,7 @@ export const getPopularProducts = async (req: Request, res: Response) => {
     try {
         const { limit = 8 } = req.query
 
-        const products = await Product.find()
+        const products = await Product.find({ isActive: true })
             .populate('category')
             .sort({ rating: -1, 'reviews.length': -1 })
             .limit(Number(limit))
@@ -141,7 +144,8 @@ export const getRelatedProducts = async (req: Request, res: Response) => {
 
         const relatedProducts = await Product.find({
             _id: { $ne: productId },
-            category: product.category?._id
+            category: product.category?._id,
+            isActive: true
         })
             .populate('category')
             .sort({ rating: -1 })
@@ -186,7 +190,8 @@ export const getRecentlyViewed = async (req: Request, res: Response) => {
         }
 
         const products = await Product.find({
-            _id: { $in: productIds }
+            _id: { $in: productIds },
+            isActive: true
         })
             .populate('category')
             .lean()

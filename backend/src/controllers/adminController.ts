@@ -102,4 +102,23 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         console.error('Dashboard stats error:', error)
         res.status(500).json({ message: 'Failed to get dashboard statistics' })
     }
+}
+
+export const getAllCustomers = async (req: Request, res: Response) => {
+    try {
+        const customers = await User.find({ role: 'customer' }).select('-password')
+        res.json(customers)
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch customers' })
+    }
+}
+
+export const getCustomerOrders = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params
+        const orders = await Order.find({ user: userId }).sort({ createdAt: -1 })
+        res.json(orders)
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch customer orders' })
+    }
 } 

@@ -22,8 +22,7 @@ export default function ProductDetailPage() {
     const { isAuthenticated, token } = useAuthStore()
     const [product, setProduct] = useState<Product | null>(null)
     const [categories, setCategories] = useState<Category[]>([])
-    const [selectedSize, setSelectedSize] = useState('')
-    const [selectedColor, setSelectedColor] = useState('')
+    const [selectedVariant, setSelectedVariant] = useState<Record<string, string>>({})
     const [comment, setComment] = useState('')
     const [rating, setRating] = useState(5)
     const [message, setMessage] = useState('')
@@ -216,8 +215,7 @@ export default function ProductDetailPage() {
                 image: product.images[0]
             },
             quantity: 1,
-            ...(selectedSize && { size: selectedSize }),
-            ...(selectedColor && { color: selectedColor })
+            ...(selectedVariant)
         }
 
         try {
@@ -236,6 +234,15 @@ export default function ProductDetailPage() {
             product.reviews.filter(r => r.isApproved).length
         ).toFixed(1)
         : null
+
+    // Helper to get all variant keys (e.g., size, color, type, etc.)
+    const variantKeys = product?.variants && product.variants.length > 0
+        ? Array.from(new Set(product.variants.flatMap(v => Object.keys(v).filter(k => v[k] !== undefined))))
+        : []
+
+    // Helper to get unique values for a variant key
+    const getVariantValues = (key: string) =>
+        Array.from(new Set(product?.variants?.map(v => v[key]).filter((val): val is string => !!val)))
 
     if (!product) return <div className="p-6 text-2xl font-black">Loading...</div>
 
@@ -317,34 +324,22 @@ export default function ProductDetailPage() {
                     {/* Variant selectors */}
                     {product.variants?.length > 0 && (
                         <div className="mt-4">
-                            <div className="mb-2">
-                                <label className="font-black">Size:</label>
-                                <div className="flex gap-2 mt-1">
-                                    {Array.from(new Set<string>(product.variants.map((v: ProductVariant) => v.size).filter((size): size is string => size !== undefined))).map((size) => (
-                                        <button
-                                            key={size}
-                                            onClick={() => setSelectedSize(size)}
-                                            className={`border px-3 py-1 rounded font-bold ${selectedSize === size ? 'bg-black text-white' : ''}`}
-                                        >
-                                            {size}
-                                        </button>
-                                    ))}
+                            {variantKeys.map((key) => (
+                                <div className="mb-2" key={key}>
+                                    <label className="font-black capitalize">{key}:</label>
+                                    <div className="flex gap-2 mt-1">
+                                        {getVariantValues(key).map((val) => (
+                                            <button
+                                                key={val}
+                                                onClick={() => setSelectedVariant((prev) => ({ ...prev, [key]: val }))}
+                                                className={`border px-3 py-1 rounded font-bold ${selectedVariant[key] === val ? 'bg-black text-white' : ''}`}
+                                            >
+                                                {val}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mb-2">
-                                <label className="font-black">Color:</label>
-                                <div className="flex gap-2 mt-1">
-                                    {[...new Set(product.variants.map((v: ProductVariant) => v.color))].map((color: string | undefined) => (
-                                        <button
-                                            key={color as string}
-                                            onClick={() => setSelectedColor(color as string)}
-                                            className={`border px-3 py-1 rounded font-bold ${selectedColor === color ? 'bg-black text-white' : ''}`}
-                                        >
-                                            {color as string}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     )}
                     <button
@@ -357,8 +352,7 @@ export default function ProductDetailPage() {
                                     image: product.images[0]
                                 },
                                 quantity: 1,
-                                ...(selectedSize && { size: selectedSize }),
-                                ...(selectedColor && { color: selectedColor })
+                                ...selectedVariant
                             }
 
                             try {
@@ -369,15 +363,15 @@ export default function ProductDetailPage() {
                                 alert((error as Error).message || 'Failed to add to cart')
                             }
                         }}
-                        disabled={product.variants?.length > 0 && (!selectedSize || !selectedColor)}
+                        disabled={product.variants?.length > 0 && variantKeys.some(key => !selectedVariant[key])}
                         className={`w-full p-4 text-white border-4 border-black font-black mt-4 transition-all duration-150
-                            ${product.variants?.length > 0 && (!selectedSize || !selectedColor)
+                            ${product.variants?.length > 0 && variantKeys.some(key => !selectedVariant[key])
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-blue-400 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
                             }`}
                     >
-                        {product.variants?.length > 0 && (!selectedSize || !selectedColor)
-                            ? 'PLEASE SELECT SIZE AND COLOR'
+                        {product.variants?.length > 0 && variantKeys.some(key => !selectedVariant[key])
+                            ? `PLEASE SELECT ${variantKeys.filter(key => !selectedVariant[key]).map(k => k.toUpperCase()).join(' & ')}`
                             : 'ADD TO CART'
                         }
                     </button>

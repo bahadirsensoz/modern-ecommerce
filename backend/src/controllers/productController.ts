@@ -14,8 +14,10 @@ declare global {
     }
 }
 
-export const getProducts = async (_: Request, res: Response) => {
-    const products = await Product.find()
+export const getProducts = async (req: Request, res: Response) => {
+    let query: any = {}
+
+    const products = await Product.find(query)
         .populate('category')
         .lean()
 
@@ -37,7 +39,11 @@ export const getProducts = async (_: Request, res: Response) => {
 
 export const getProductById = async (req: Request, res: Response) => {
     const { id } = req.params
-    const product = await Product.findById(id)
+    let query: any = { _id: id }
+    if (!req.user || req.user.role !== 'admin') {
+        query.isActive = true
+    }
+    const product = await Product.findOne(query)
         .populate('category')
         .populate('reviews.user', 'firstName lastName')
         .lean()
@@ -87,7 +93,9 @@ export const createProduct = async (req: Request, res: Response) => {
             description,
             price: Number(req.body.price),
             category: req.body.category,
-            images: imageUrls
+            images: imageUrls,
+            stock: req.body.stock !== undefined ? Number(req.body.stock) : 0,
+            isActive: req.body.isActive !== undefined ? req.body.isActive : true
         })
 
         await product.save()
@@ -104,7 +112,10 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
     const { id } = req.params
-    const product = await Product.findByIdAndUpdate(id, req.body, { new: true })
+    const update: any = { ...req.body }
+    if (update.stock !== undefined) update.stock = Number(update.stock)
+    if (update.isActive !== undefined) update.isActive = !!update.isActive
+    const product = await Product.findByIdAndUpdate(id, update, { new: true })
     if (!product) return res.status(404).json({ message: 'Product not found' })
     res.json(product)
 }
@@ -272,5 +283,18 @@ export const getPendingReviews = async (_: Request, res: Response) => {
     } catch (error) {
         console.error('Failed to fetch pending reviews:', error)
         res.status(500).json({ message: 'Failed to fetch pending reviews' })
+    }
+}
+
+export const bulkActivateProducts = async (req: Request, res: Response) => {
+    try {
+        const { ids, isActive } = req.body
+        if (!Array.isArray(ids) || typeof isActive !== 'boolean') {
+            return res.status(400).json({ message: 'Invalid request' })
+        }
+        await Product.updateMany({ _id: { $in: ids } }, { isActive })
+        res.json({ message: 'Products updated successfully' })
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update products' })
     }
 }

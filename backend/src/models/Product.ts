@@ -35,12 +35,13 @@ const productSchema = new mongoose.Schema(
         category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
         variants: [
             {
-                size: String,
-                color: String,
+                type: mongoose.Schema.Types.Mixed,
+                default: {},
             },
         ],
         tags: [String],
         isFeatured: { type: Boolean, default: false },
+        isActive: { type: Boolean, default: true },
         specifications: { type: Object },
         reviews: [reviewSchema],
         rating: {
