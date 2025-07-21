@@ -18,7 +18,7 @@ function OrderDetailModal({ order, open, onClose, onStatusChange }: {
     if (!open || !order) return null
     return (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg border-4 border-black w-full max-w-lg">
+            <div className="bg-gray-400 p-6 rounded-lg border-4 border-black w-full max-w-lg">
                 <h2 className="text-2xl font-black mb-2">Order #{order._id}</h2>
                 <div className="mb-2">Placed: {new Date(order.createdAt).toLocaleDateString()}</div>
                 <div className="mb-2">Customer: {order.shippingAddress.fullName}</div>
@@ -174,7 +174,7 @@ export default function AdminOrdersPage() {
                 </div>
                 <div className="space-y-4">
                     {filtered.map((order) => (
-                        <div key={order._id} className="bg-white p-6 border-4 border-black">
+                        <div key={order._id} className="bg-gray-400 p-6 border-4 border-black">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h2 className="text-xl font-bold">Order #{order._id}</h2>

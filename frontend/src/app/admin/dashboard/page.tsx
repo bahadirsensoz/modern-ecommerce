@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
                     <h1 className="text-5xl font-black mb-8 transform -rotate-2">ADMIN DASHBOARD</h1>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white border-4 border-black p-6 animate-pulse">
+                            <div key={i} className="bg-gray-400 border-4 border-black p-6 animate-pulse">
                                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                                 <div className="h-8 bg-gray-200 rounded"></div>
                             </div>
@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Order Status Distribution */}
-                <div className="bg-white border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <div className="bg-gray-400 border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     <h2 className="text-2xl font-black mb-6">ORDER STATUS DISTRIBUTION</h2>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div className="text-center">
@@ -147,7 +147,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Recent Orders */}
-                <div className="bg-white border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <div className="bg-gray-400 border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     <h2 className="text-2xl font-black mb-6">RECENT ORDERS</h2>
                     <div className="space-y-4">
                         {stats?.recentOrders?.slice(0, 5).map((order: Order) => (
@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Popular Products */}
-                <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <div className="bg-gray-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     <h2 className="text-2xl font-black mb-6">POPULAR PRODUCTS</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {stats?.popularProducts?.slice(0, 6).map((product: Product) => (

@@ -20,7 +20,7 @@ export default function ProductCard({ product, categories, viewMode = 'grid' }: 
         return (
             <div
                 onClick={() => router.push(`/product/${product._id}`)}
-                className="bg-white border-4 border-black p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+                className="bg-gray-400 border-4 border-black p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
             >
                 <div className="flex gap-6">
                     <div className="relative w-48 h-48 border-2 border-black flex-shrink-0">
@@ -59,7 +59,7 @@ export default function ProductCard({ product, categories, viewMode = 'grid' }: 
     return (
         <div
             onClick={() => router.push(`/product/${product._id}`)}
-            className="bg-white border-4 border-black hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] cursor-pointer transition-all duration-200"
+            className="bg-gray-400 border-4 border-black hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] cursor-pointer transition-all duration-200"
         >
             <div className="relative aspect-[4/3] w-full">
                 <Image

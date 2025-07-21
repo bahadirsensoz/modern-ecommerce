@@ -63,7 +63,7 @@ export default function RegisterPage() {
                         <input
                             {...register('firstName')}
                             placeholder="FIRST NAME"
-                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-white"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-gray-400"
                         />
                         {errors.firstName && (
                             <p className="text-red-500 font-bold">{errors.firstName.message}</p>
@@ -72,7 +72,7 @@ export default function RegisterPage() {
                         <input
                             {...register('lastName')}
                             placeholder="LAST NAME"
-                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-white"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-gray-400"
                         />
                         {errors.lastName && (
                             <p className="text-red-500 font-bold">{errors.lastName.message}</p>
@@ -81,7 +81,7 @@ export default function RegisterPage() {
                         <input
                             {...register('email')}
                             placeholder="EMAIL"
-                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-white"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-gray-400"
                         />
                         {errors.email && (
                             <p className="text-red-500 font-bold">{errors.email.message}</p>
@@ -91,7 +91,7 @@ export default function RegisterPage() {
                             {...register('password')}
                             placeholder="PASSWORD"
                             type="password"
-                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-white"
+                            className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 bg-gray-400"
                         />
                         {errors.password && (
                             <p className="text-red-500 font-bold">{errors.password.message}</p>

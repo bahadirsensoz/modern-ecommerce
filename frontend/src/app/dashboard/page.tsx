@@ -40,13 +40,13 @@ export default function DashboardPage() {
             <div className="bg-pink-200 border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                 <h2 className="text-2xl font-black mb-4 transform -rotate-1">PROFILE INFO</h2>
                 <div className="space-y-2 font-bold">
-                    <p className="bg-white border-2 border-black p-2">
+                    <p className="bg-gray-400 border-2 border-black p-2 text-black">
                         <span className="font-black">NAME:</span> {user.firstName} {user.lastName}
                     </p>
-                    <p className="bg-white border-2 border-black p-2">
+                    <p className="bg-gray-400 border-2 border-black p-2 text-black">
                         <span className="font-black">EMAIL:</span> {user.email}
                     </p>
-                    <p className="bg-white border-2 border-black p-2">
+                    <p className="bg-gray-400 border-2 border-black p-2 text-black">
                         <span className="font-black">PHONE:</span> {user.phone || '-'}
                     </p>
                 </div>
@@ -78,7 +78,7 @@ export default function DashboardPage() {
                 {user.addresses && user.addresses.length > 0 ? (
                     <div className="space-y-3">
                         {user.addresses.map((addr, idx) => (
-                            <div key={idx} className="bg-white border-2 border-black p-3">
+                            <div key={idx} className="bg-gray-400 border-2 border-black p-3">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="font-black text-lg">
                                         {addr.label || 'ADDRESS ' + (idx + 1)}
@@ -96,7 +96,7 @@ export default function DashboardPage() {
                         ))}
                     </div>
                 ) : (
-                    <p className="font-bold bg-white border-2 border-black p-3">No addresses saved.</p>
+                    <p className="font-bold bg-gray-400 border-2 border-black p-3">No addresses saved.</p>
                 )}
             </div>
         </div>

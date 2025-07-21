@@ -11,11 +11,6 @@ import { Product, Review, ApiError, CartItem, Category } from '@/types'
 import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 import { trackProductView } from '@/utils/activityTracking'
 
-interface ProductVariant {
-    size?: string
-    color?: string
-}
-
 export default function ProductDetailPage() {
     const router = useRouter()
     const { id } = useParams()
@@ -269,13 +264,13 @@ export default function ProductDetailPage() {
                             <>
                                 <button
                                     onClick={handlePrevImage}
-                                    className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
+                                    className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-gray-400 border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
                                 >
                                     ◀
                                 </button>
                                 <button
                                     onClick={handleNextImage}
-                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
+                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-gray-400 border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
                                 >
                                     ▶
                                 </button>
@@ -327,12 +322,12 @@ export default function ProductDetailPage() {
                             {variantKeys.map((key) => (
                                 <div className="mb-2" key={key}>
                                     <label className="font-black capitalize">{key}:</label>
-                                    <div className="flex gap-2 mt-1">
+                                    <div className="flex gap-2 mt-1 bg-blue-20">
                                         {getVariantValues(key).map((val) => (
                                             <button
                                                 key={val}
                                                 onClick={() => setSelectedVariant((prev) => ({ ...prev, [key]: val }))}
-                                                className={`border px-3 py-1 rounded font-bold ${selectedVariant[key] === val ? 'bg-black text-white' : ''}`}
+                                                className={`border px-3 py-1 rounded font-bold text-gray-800 ${selectedVariant[key] === val ? 'bg-gray-300 text-gray-100' : ''}`}
                                             >
                                                 {val}
                                             </button>
@@ -429,7 +424,7 @@ export default function ProductDetailPage() {
 
                 {/* Show message if no approved reviews */}
                 {product.reviews.filter((r: Review) => r.isApproved).length === 0 && (
-                    <div className="bg-gray-200 border-4 border-black p-4 text-center font-bold">
+                    <div className="bg-gray-200 border-4 border-black p-4 text-center font-bold bg-gray-400">
                         No reviews yet. Be the first to review this product!
                     </div>
                 )}

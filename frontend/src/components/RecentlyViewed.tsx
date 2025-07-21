@@ -52,7 +52,7 @@ export default function RecentlyViewed({ categories }: RecentlyViewedProps) {
                 <h2 className="text-3xl font-black mb-8 transform -rotate-2">👁️ RECENTLY VIEWED</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[...Array(4)].map((_, i) => (
-                        <div key={i} className="bg-white border-4 border-black animate-pulse">
+                        <div key={i} className="bg-gray-400 border-4 border-black animate-pulse">
                             <div className="aspect-[4/3] bg-gray-200"></div>
                             <div className="p-4 space-y-2">
                                 <div className="h-4 bg-gray-200 rounded"></div>

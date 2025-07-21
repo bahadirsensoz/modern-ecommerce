@@ -89,19 +89,19 @@ export default function NewsletterAdminPage() {
                 {/* Stats Cards */}
                 {stats && (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="bg-gray-400 p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <h3 className="text-lg font-bold text-gray-600">Total Subscribers</h3>
                             <p className="text-3xl font-black text-green-600">{stats.totalSubscribers}</p>
                         </div>
-                        <div className="bg-white p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="bg-gray-400 p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <h3 className="text-lg font-bold text-gray-600">New This Month</h3>
                             <p className="text-3xl font-black text-blue-600">{stats.newThisMonth}</p>
                         </div>
-                        <div className="bg-white p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="bg-gray-400 p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <h3 className="text-lg font-bold text-gray-600">Unsubscribed</h3>
                             <p className="text-3xl font-black text-red-600">{stats.totalUnsubscribed}</p>
                         </div>
-                        <div className="bg-white p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="bg-gray-400 p-6 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <h3 className="text-lg font-bold text-gray-600">Total Subscriptions</h3>
                             <p className="text-3xl font-black text-purple-600">{stats.totalSubscriptions}</p>
                         </div>
@@ -109,7 +109,7 @@ export default function NewsletterAdminPage() {
                 )}
 
                 {/* Subscribers Table */}
-                <div className="bg-white rounded-lg border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                <div className="bg-gray-400 rounded-lg border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
                     <div className="bg-gray-100 p-4 border-b-4 border-black">
                         <h2 className="text-2xl font-black">Active Subscribers ({subscribers.length})</h2>
                     </div>
@@ -132,7 +132,7 @@ export default function NewsletterAdminPage() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-gray-400 divide-y divide-gray-200">
                                 {subscribers.map((subscriber) => (
                                     <tr key={subscriber._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap">

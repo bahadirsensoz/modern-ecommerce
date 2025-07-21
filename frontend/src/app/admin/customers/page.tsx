@@ -71,7 +71,7 @@ export default function AdminCustomersPage() {
                     {filtered.map((customer) => (
                         <div
                             key={customer._id}
-                            className="bg-white p-4 border-4 border-black flex justify-between items-center"
+                            className="bg-gray-400 p-4 border-4 border-black flex justify-between items-center"
                         >
                             <div>
                                 <p className="font-black text-lg">{customer.firstName} {customer.lastName}</p>
@@ -92,7 +92,7 @@ export default function AdminCustomersPage() {
                 </div>
                 {selected && (
                     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-lg border-4 border-black w-full max-w-lg">
+                        <div className="bg-gray-400 p-6 rounded-lg border-4 border-black w-full max-w-lg">
                             <h2 className="text-2xl font-black mb-2">{selected.firstName} {selected.lastName}</h2>
                             <p className="mb-2">Email: {selected.email}</p>
                             <p className="mb-2">Role: {selected.role}</p>
