@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { FaHeart, FaRegHeart } from 'react-icons/fa'
+import { useAuthStore } from '@/store/authStore'
+import { useRouter } from 'next/navigation'
+import { Product } from '@/types'
+import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 interface Props {
     productId: string
@@ -10,42 +14,61 @@ interface Props {
 }
 
 export default function FavoriteButton({ productId, initialIsFavorite, variant = 'card' }: Props) {
+    const router = useRouter()
+    const { user, isAuthenticated, token } = useAuthStore()
     const [isFavorite, setIsFavorite] = useState<boolean>(false)
 
     useEffect(() => {
-        const fetchFavoriteStatus = async () => {
-            const token = localStorage.getItem('token')
-            if (!token || initialIsFavorite !== undefined) {
-                setIsFavorite(!!initialIsFavorite)
-                return
+        if (isAuthenticated && user?.favorites) {
+            const favorites = user.favorites as (string | Product)[]
+            const isFav = favorites.some(fav =>
+                typeof fav === 'string'
+                    ? fav === productId
+                    : fav._id === productId
+            )
+            setIsFavorite(isFav)
+        }
+    }, [user, productId, isAuthenticated])
+
+    const toggleFavorite = async (e: React.MouseEvent) => {
+        e.stopPropagation()
+
+        if (!isAuthenticated) {
+            if (confirm('Please login to add favorites. Would you like to login now?')) {
+                router.push('/login')
             }
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-
-            const user = await res.json()
-            setIsFavorite(user.favorites?.includes(productId))
+            return
         }
 
-        fetchFavoriteStatus()
-    }, [productId, initialIsFavorite])
+        if (!token) {
+            console.error('No token available')
+            return
+        }
 
-    const toggleFavorite = async () => {
-        const token = localStorage.getItem('token')
-        if (!token) return alert('Please login to favorite products.')
+        logTokenInfo(token, 'FavoriteButton')
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/favorites`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ productId })
-        })
+        if (!isValidJWT(token)) {
+            console.error('Invalid JWT token in FavoriteButton')
+            return
+        }
 
-        if (res.ok) {
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/favorites`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ productId })
+            })
+
+            if (!res.ok) throw new Error('Failed to toggle favorite')
+
+            const data = await res.json()
             setIsFavorite(prev => !prev)
+        } catch (error) {
+            console.error('Failed to toggle favorite:', error)
         }
     }
 
@@ -55,10 +78,7 @@ export default function FavoriteButton({ productId, initialIsFavorite, variant =
 
     return (
         <button
-            onClick={(e) => {
-                toggleFavorite()
-                e.stopPropagation()
-            }}
+            onClick={toggleFavorite}
             className={buttonClass}
         >
             {isFavorite ? <FaHeart /> : <FaRegHeart />}

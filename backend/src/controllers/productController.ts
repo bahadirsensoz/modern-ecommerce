@@ -13,13 +13,11 @@ declare global {
     }
 }
 
-// Modify getProducts to exclude unapproved reviews
 export const getProducts = async (_: Request, res: Response) => {
     const products = await Product.find()
         .populate('category')
-        .lean() // Convert to plain JS object for manipulation
+        .lean()
 
-    // Filter out unapproved reviews and recalculate ratings
     const sanitizedProducts = products.map(product => {
         const approvedReviews = product.reviews?.filter(r => r.isApproved) || []
         const rating = approvedReviews.length > 0
@@ -36,23 +34,20 @@ export const getProducts = async (_: Request, res: Response) => {
     res.json(sanitizedProducts)
 }
 
-// Modify getProductById to exclude unapproved reviews
 export const getProductById = async (req: Request, res: Response) => {
     const { id } = req.params
     const product = await Product.findById(id)
         .populate('category')
         .populate('reviews.user', 'firstName lastName')
-        .lean() // Convert to plain JS object for manipulation
+        .lean()
 
     if (!product) return res.status(404).json({ message: 'Product not found' })
 
-    // Filter out unapproved reviews and recalculate rating
     const approvedReviews = product.reviews?.filter(r => r.isApproved) || []
     const rating = approvedReviews.length > 0
         ? approvedReviews.reduce((acc: number, review: any) => acc + review.rating, 0) / approvedReviews.length
         : 0
 
-    // Send sanitized product data
     const sanitizedProduct = {
         ...product,
         reviews: approvedReviews,
@@ -117,7 +112,6 @@ export const deleteProduct = async (req: Request, res: Response) => {
     res.json({ message: 'Product deleted' })
 }
 
-// Modify addProductReview to only return approved reviews
 export const addProductReview = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
@@ -141,13 +135,13 @@ export const addProductReview = async (req: Request, res: Response) => {
             existingReview.rating = rating
             existingReview.comment = comment
             existingReview.createdAt = new Date()
-            existingReview.isApproved = false // Reset approval on edit
+            existingReview.isApproved = false
         } else {
             product.reviews.push({
                 user: userId,
                 rating,
                 comment,
-                isApproved: false // New reviews start unapproved
+                isApproved: false
             })
         }
 
@@ -159,7 +153,6 @@ export const addProductReview = async (req: Request, res: Response) => {
 
         await product.save()
 
-        // Get updated product and sanitize before sending
         const updatedProduct = await Product.findById(id)
             .populate('reviews.user', 'firstName lastName')
             .populate('category')
@@ -257,7 +250,6 @@ export const approveReview = async (req: Request, res: Response) => {
     }
 }
 
-// Add new controller method for getting pending reviews
 export const getPendingReviews = async (_: Request, res: Response) => {
     try {
         const products = await Product.find({ 'reviews.isApproved': false })
@@ -265,7 +257,6 @@ export const getPendingReviews = async (_: Request, res: Response) => {
             .populate('reviews.user', 'firstName lastName')
             .lean()
 
-        // Only include products that have pending reviews
         const productsWithPendingReviews = products.map(product => ({
             ...product,
             reviews: product.reviews.filter(r => !r.isApproved)
