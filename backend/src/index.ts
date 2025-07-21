@@ -45,6 +45,15 @@ app.use('/api/newsletter', newsletterRoutes)
 app.use('/api/recommendations', recommendationRoutes)
 app.use('/api/admin', adminRoutes)
 
+if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+        if (req.headers['x-forwarded-proto'] !== 'https') {
+            return res.redirect('https://' + req.headers.host + req.url)
+        }
+        next()
+    })
+}
+
 
 app.get('/', (req, res) => {
     res.send('Backend is running')

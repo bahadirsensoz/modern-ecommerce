@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { User, IUser } from '../models/User'
 import bcrypt from 'bcrypt'
 import mongoose from 'mongoose'
+import validator from 'validator'
 
 interface AuthRequest extends Request {
     user?: IUser
@@ -21,7 +22,10 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 export const updateProfile = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?._id
-        const { firstName, lastName, phone } = req.body
+        let { firstName, lastName, phone } = req.body
+        if (firstName) firstName = validator.escape(firstName)
+        if (lastName) lastName = validator.escape(lastName)
+        if (phone) phone = validator.escape(phone)
 
         const user = await User.findById(userId)
         if (!user) return res.status(404).json({ message: 'User not found' })
@@ -46,6 +50,9 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 
         if (!currentPassword || !newPassword) {
             return res.status(400).json({ message: 'Both fields are required' })
+        }
+        if (typeof newPassword !== 'string' || newPassword.length < 6) {
+            return res.status(400).json({ message: 'New password must be at least 6 characters' })
         }
 
         const user = await User.findById(userId)
