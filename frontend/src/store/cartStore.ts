@@ -24,6 +24,7 @@ interface ApiCartItem {
         name: string
         price: number
         image?: string | string[]
+        images?: string[]
     }
     quantity: number
     size?: string
@@ -54,17 +55,21 @@ export const useCartStore = create<CartStore>()(
                         if (res.ok) {
                             const data = await res.json()
                             if (data?.items) {
-                                const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
-                                    product: {
-                                        _id: item.product._id,
-                                        name: item.product.name,
-                                        price: item.product.price,
-                                        image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
-                                    },
-                                    quantity: item.quantity,
-                                    size: item.size,
-                                    color: item.color
-                                }))
+                                const formattedItems: CartItem[] = data.items
+                                    .filter((item: ApiCartItem) => item?.product)
+                                    .map((item: ApiCartItem) => ({
+                                        product: {
+                                            _id: item.product._id,
+                                            name: item.product.name,
+                                            price: item.product.price,
+                                            image: Array.isArray(item.product.image)
+                                                ? item.product.image[0]
+                                                : item.product.image ?? item.product.images?.[0]
+                                        },
+                                        quantity: item.quantity,
+                                        size: item.size,
+                                        color: item.color
+                                    }))
                                 set({ items: formattedItems })
                             }
                         }
@@ -85,17 +90,21 @@ export const useCartStore = create<CartStore>()(
                         if (res.ok) {
                             const data = await res.json()
                             if (data?.items) {
-                                const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
-                                    product: {
-                                        _id: item.product._id,
-                                        name: item.product.name,
-                                        price: item.product.price,
-                                        image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
-                                    },
-                                    quantity: item.quantity,
-                                    size: item.size,
-                                    color: item.color
-                                }))
+                                const formattedItems: CartItem[] = data.items
+                                    .filter((item: ApiCartItem) => item?.product)
+                                    .map((item: ApiCartItem) => ({
+                                        product: {
+                                            _id: item.product._id,
+                                            name: item.product.name,
+                                            price: item.product.price,
+                                            image: Array.isArray(item.product.image)
+                                                ? item.product.image[0]
+                                                : item.product.image ?? item.product.images?.[0]
+                                        },
+                                        quantity: item.quantity,
+                                        size: item.size,
+                                        color: item.color
+                                    }))
                                 set({ items: formattedItems })
                             }
                         }
@@ -130,17 +139,21 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
-                                product: {
-                                    _id: item.product._id,
-                                    name: item.product.name,
-                                    price: item.product.price,
-                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
-                                },
-                                quantity: item.quantity,
-                                size: item.size,
-                                color: item.color
-                            }))
+                            const formattedItems: CartItem[] = data.items
+                                .filter((item: ApiCartItem) => item?.product)
+                                .map((item: ApiCartItem) => ({
+                                    product: {
+                                        _id: item.product._id,
+                                        name: item.product.name,
+                                        price: item.product.price,
+                                        image: Array.isArray(item.product.image)
+                                            ? item.product.image[0]
+                                            : item.product.image ?? item.product.images?.[0]
+                                    },
+                                    quantity: item.quantity,
+                                    size: item.size,
+                                    color: item.color
+                                }))
                             set({ items: formattedItems })
                         }
                     } catch (error) {
@@ -333,17 +346,21 @@ export const useCartStore = create<CartStore>()(
                         const data = await res.json()
 
                         if (data?.items) {
-                            const formattedItems: CartItem[] = data.items.map((item: ApiCartItem) => ({
-                                product: {
-                                    _id: item.product._id,
-                                    name: item.product.name,
-                                    price: item.product.price,
-                                    image: Array.isArray(item.product.image) ? item.product.image[0] : item.product.image
-                                },
-                                quantity: item.quantity,
-                                size: item.size,
-                                color: item.color
-                            }))
+                            const formattedItems: CartItem[] = data.items
+                                .filter((item: ApiCartItem) => item?.product)
+                                .map((item: ApiCartItem) => ({
+                                    product: {
+                                        _id: item.product._id,
+                                        name: item.product.name,
+                                        price: item.product.price,
+                                        image: Array.isArray(item.product.image)
+                                            ? item.product.image[0]
+                                            : item.product.image ?? item.product.images?.[0]
+                                    },
+                                    quantity: item.quantity,
+                                    size: item.size,
+                                    color: item.color
+                                }))
                             set({ items: formattedItems })
                         }
                     } catch (error) {

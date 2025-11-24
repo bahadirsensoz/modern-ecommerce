@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { Product, Category } from '@/types'
-import { getCategoryName } from '@/utils/getCategoryName'
 import { matchCategory } from '@/utils/matchCategory'
 import { useRouter } from 'next/navigation'
 import ProductCard from '@/components/ProductCard'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
+
+const ITEMS_PER_PAGE = 9
 
 export default function HomePage() {
   const router = useRouter()
@@ -20,10 +21,8 @@ export default function HomePage() {
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
-  const ITEMS_PER_PAGE = 9
 
   const { isAuthenticated, token } = useAuthStore()
-
 
   const fetchProducts = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
@@ -50,24 +49,30 @@ export default function HomePage() {
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 4)
 
-  // Filter and sort products
   const filteredAndSortedProducts = products
-    .filter(p => {
+    .filter((p) => {
       const matchesCategory = !selectedCategory || matchCategory(p, selectedCategory)
-      const matchesSearch = !searchQuery ||
+      const matchesSearch =
+        !searchQuery ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-      const matchesPrice = (!priceRange.min || p.price >= Number(priceRange.min)) &&
+      const matchesPrice =
+        (!priceRange.min || p.price >= Number(priceRange.min)) &&
         (!priceRange.max || p.price <= Number(priceRange.max))
       return matchesCategory && matchesSearch && matchesPrice
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'price-asc': return a.price - b.price
-        case 'price-desc': return b.price - a.price
-        case 'rating': return b.rating - a.rating
-        case 'newest': return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        default: return 0
+        case 'price-asc':
+          return a.price - b.price
+        case 'price-desc':
+          return b.price - a.price
+        case 'rating':
+          return b.rating - a.rating
+        case 'newest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        default:
+          return 0
       }
     })
 
@@ -77,10 +82,6 @@ export default function HomePage() {
     page * ITEMS_PER_PAGE
   )
 
-  const handleProductClick = (productId: string) => {
-    router.push(`/product/${productId}`)
-  }
-
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId)
     setPage(1)
@@ -89,201 +90,289 @@ export default function HomePage() {
     }, 0)
   }
 
-
-
   return (
-    <div className="min-h-screen bg-yellow-200">
-      {/* Hero Section */}
-      <section className="bg-black text-white py-24 border-b-8 border-red-500 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-7xl font-black mb-6 transform -rotate-2">
-            WELCOME TO MYSHOP
+    <div className="page-shell space-y-12">
+      <section className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center">
+        <div className="space-y-6">
+          <p className="pill w-fit">Curated for everyday living</p>
+          <h1 className="text-4xl font-semibold text-gray-900 sm:text-5xl lg:text-6xl">
+            Elevated essentials for modern spaces.
           </h1>
-          <p className="text-3xl font-bold bg-red-500 inline-block p-3 transform rotate-1 mb-8">
-            Discover amazing products at great prices
+          <p className="max-w-2xl text-lg text-gray-700">
+            Thoughtfully designed pieces with premium materials, neutral palettes, and timeless lines.
+            Built to last, easy to style, and ready to ship.
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="primary-btn"
+            >
+              Shop the collection
+            </button>
             <button
               onClick={() => document.getElementById('new-arrivals')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-blue-500 text-white px-6 py-3 text-xl font-black border-4 border-white hover:transform hover:-rotate-2 transition-all"
+              className="ghost-btn"
             >
-              NEW ARRIVALS
+              New this week
             </button>
-            <button
-              onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-green-500 text-white px-6 py-3 text-xl font-black border-4 border-white hover:transform hover:rotate-2 transition-all"
-            >
-              BROWSE CATEGORIES
-            </button>
+          </div>
+          <div className="surface grid gap-4 rounded-xl p-4 sm:grid-cols-3">
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Fast dispatch</p>
+              <p className="text-gray-900 font-semibold">Ships in 24-48h from local hubs</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Free & easy returns</p>
+              <p className="text-gray-900 font-semibold">30-day returns on all items</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Support that answers</p>
+              <p className="text-gray-900 font-semibold">Live chat & email, 7 days a week</p>
+            </div>
           </div>
         </div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 -rotate-12 transform translate-x-24 -translate-y-24"></div>
+
+        <div className="section relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(246,139,30,0.14),transparent_45%)]" />
+          <div className="relative space-y-5">
+            <p className="pill w-fit">Editors&apos; pick</p>
+            <div className="space-y-3">
+              <h3 className="headline">Pieces with personality.</h3>
+              <p className="subtle">
+                Layerable neutrals, tactile fabrics, and thoughtful hardware. Made to mix, made to move.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {newArrivals.slice(0, 2).map((item) => (
+                <button
+                  key={item._id}
+                  onClick={() => router.push(`/product/${item._id}`)}
+                  className="surface group relative overflow-hidden rounded-xl p-3 text-left transition"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg">
+                    <Image
+                      src={item.images?.[0] || '/placeholder.jpg'}
+                      alt={item.name}
+                      fill
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <p className="text-sm text-gray-500">{item.category?.name || 'Collection'}</p>
+                    <p className="font-semibold text-gray-900">{item.name}</p>
+                    <p className="text-sm text-gray-700">${item.price}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-        {/* New Arrivals Section */}
-        <section id="new-arrivals" className="bg-blue-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <h2 className="text-3xl font-black mb-8 transform -rotate-2">🆕 NEW ARRIVALS</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {newArrivals.map(product => (
-              <ProductCard key={product._id} product={product} categories={categories} />
-            ))}
+      <section id="new-arrivals" className="section space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="pill w-fit">Fresh drops</p>
+            <h2 className="headline">New arrivals</h2>
           </div>
-        </section>
+          <button
+            onClick={() => document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })}
+            className="ghost-btn"
+          >
+            View all
+          </button>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {newArrivals.map((product) => (
+            <ProductCard key={product._id} product={product} categories={categories} />
+          ))}
+        </div>
+      </section>
 
-        {/* Popular Products Section */}
-        <section className="bg-green-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <h2 className="text-3xl font-black mb-8 transform -rotate-2">🔥 POPULAR NOW</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularProducts.map(product => (
-              <ProductCard key={product._id} product={product} categories={categories} />
-            ))}
+      <section className="section space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="pill w-fit">Community favorites</p>
+            <h2 className="headline">Popular picks</h2>
           </div>
-        </section>
+          <span className="subtle text-sm">
+            Sorted by rating and repeat purchases
+          </span>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {popularProducts.map((product) => (
+            <ProductCard key={product._id} product={product} categories={categories} />
+          ))}
+        </div>
+      </section>
 
-        {/* Categories Grid Section */}
-        <section id="categories" className="bg-blue-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <h2 className="text-3xl font-black mb-8 transform -rotate-2">SHOP BY CATEGORY</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {categories.map((category) => (
-              <div
-                key={category._id}
-                onClick={() => handleCategoryClick(category._id)}
-                className="bg-gray-400 border-4 border-black p-4 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-              >
-                <div className="relative w-full aspect-square mb-4 border-2 border-black">
-                  {category.image ? (
-                    <Image
-                      src={category.image}
-                      alt={category.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-4xl">📦</span>
-                    </div>
-                  )}
-                </div>
-                <h3 className="font-black text-xl text-center transform -rotate-1">
-                  {category.name.toUpperCase()}
-                </h3>
+      <section id="categories" className="section space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="pill w-fit">Shop by category</p>
+            <h2 className="headline">Find your vibe</h2>
+          </div>
+          {selectedCategory && (
+            <button
+              onClick={() => setSelectedCategory('')}
+              className="ghost-btn text-sm"
+            >
+              Clear selection
+            </button>
+          )}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {categories.map((category) => (
+            <button
+              key={category._id}
+              onClick={() => handleCategoryClick(category._id)}
+              className={`surface relative overflow-hidden rounded-2xl border border-gray-200 p-4 text-left transition ${
+                selectedCategory === category._id ? 'ring-2 ring-orange-300' : ''
+              }`}
+            >
+              <div className="relative mb-4 aspect-[4/3] w-full overflow-hidden rounded-xl">
+                {category.image ? (
+                  <Image
+                    src={category.image}
+                    alt={category.name}
+                    fill
+                    className="object-cover transition duration-300 hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-white/5 text-sm text-slate-400">
+                    No image
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Products Section with Filtering */}
-        <section id="products-section" className="bg-pink-200 p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <div className="space-y-6">
-            {/* Search and Filters */}
-            <div className="flex flex-wrap gap-4">
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 p-3 border-4 border-black font-bold bg-gray-400"
-              />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="p-3 border-4 border-black font-bold bg-gray-400"
-              >
-                <option value="">Sort By</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="rating">Best Rated</option>
-                <option value="newest">Newest</option>
-              </select>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="Min Price"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                  className="w-24 p-3 border-4 border-black font-bold bg-gray-400"
-                />
-                <input
-                  type="number"
-                  placeholder="Max Price"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                  className="w-24 p-3 border-4 border-black font-bold bg-gray-400"
-                />
+              <div className="space-y-1">
+                <p className="text-sm text-gray-500">Category</p>
+                <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
               </div>
-              <button
-                onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
-                className="p-3 bg-blue-400 text-white border-4 border-black font-bold"
-              >
-                {viewMode === 'grid' ? '📝 List View' : '📱 Grid View'}
-              </button>
-            </div>
+            </button>
+          ))}
+        </div>
+      </section>
 
-            {/* Category dropdown filter */}
-            <div className="flex gap-4 items-center mb-4">
-              <label className="font-bold">Category:</label>
-              <select
-                value={selectedCategory}
-                onChange={e => {
-                  setSelectedCategory(e.target.value)
-                  setPage(1)
-                }}
-                className="p-3 border-4 border-black font-bold bg-gray-400"
-              >
-                <option value="">All Categories</option>
-                {categories.map(cat => (
-                  <option key={cat._id} value={cat._id}>{cat.name}</option>
-                ))}
-              </select>
-              {selectedCategory && (
-                <button
-                  onClick={() => setSelectedCategory('')}
-                  className="ml-2 px-3 py-1 bg-gray-300 border-2 border-black font-bold"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            {/* Products Grid/List */}
-            <div className={viewMode === 'grid'
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-              : "space-y-4"
-            }>
-              {paginatedProducts.map(product => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  categories={categories}
-                  viewMode={viewMode}
-                />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex justify-center gap-2 mt-8">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(i + 1)}
-                  className={`w-10 h-10 font-bold border-2 border-black ${page === i + 1 ? 'bg-blue-500 text-white' : 'bg-gray-400'
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
+      <section id="products-section" className="section space-y-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex-1 min-w-[220px]">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input"
+            />
           </div>
-        </section>
-
-        {/* Newsletter Section */}
-        <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto">
-            <NewsletterSignup />
+          <select
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value)
+              setPage(1)
+            }}
+            className="input w-full sm:w-48"
+          >
+            <option value="">All categories</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>{cat.name}</option>
+            ))}
+          </select>
+          {selectedCategory && (
+            <button
+              onClick={() => {
+                setSelectedCategory('')
+                setPage(1)
+              }}
+              className="ghost-btn text-sm"
+            >
+              Clear category
+            </button>
+          )}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="input w-full sm:w-48"
+          >
+            <option value="">Sort By</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Best Rated</option>
+            <option value="newest">Newest</option>
+          </select>
+          <div className="flex w-full flex-1 flex-wrap gap-2 sm:w-auto">
+            <input
+              type="number"
+              placeholder="Min"
+              value={priceRange.min}
+              onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))}
+              className="input sm:w-24"
+            />
+            <input
+              type="number"
+              placeholder="Max"
+              value={priceRange.max}
+              onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))}
+              className="input sm:w-24"
+            />
           </div>
-        </section>
-      </div>
+          <button
+            onClick={() => setViewMode((prev) => (prev === 'grid' ? 'list' : 'grid'))}
+            className="ghost-btn"
+          >
+            {viewMode === 'grid' ? 'Switch to list' : 'Switch to grid'}
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3 text-sm text-gray-600">
+          <span className="pill">
+            {filteredAndSortedProducts.length} items
+          </span>
+          {selectedCategory && (
+            <button
+              onClick={() => {
+                setSelectedCategory('')
+                setPage(1)
+              }}
+              className="pill hover:border-gray-300"
+            >
+              Filtered by category · Clear
+            </button>
+          )}
+        </div>
+
+        <div className={viewMode === 'grid'
+          ? 'grid gap-6 md:grid-cols-2 xl:grid-cols-3'
+          : 'space-y-4'
+        }>
+          {paginatedProducts.map((product) => (
+            <ProductCard
+              key={product._id}
+              product={product}
+              categories={categories}
+              viewMode={viewMode}
+            />
+          ))}
+        </div>
+
+        <div className="flex justify-center gap-2">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setPage(i + 1)}
+              className={`h-10 w-10 rounded-xl border text-sm font-semibold transition ${page === i + 1
+                ? 'border-orange-200 bg-orange-50 text-orange-700'
+                : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="pb-10">
+        <NewsletterSignup />
+      </section>
     </div>
   )
 }

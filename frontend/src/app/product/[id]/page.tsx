@@ -10,487 +10,451 @@ import Image from 'next/image'
 import { Product, Review, ApiError, CartItem, Category } from '@/types'
 import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 import { trackProductView } from '@/utils/activityTracking'
+import { getCategoryName } from '@/utils/getCategoryName'
 
 export default function ProductDetailPage() {
-    const router = useRouter()
-    const { id } = useParams()
-    const { isAuthenticated, token } = useAuthStore()
-    const [product, setProduct] = useState<Product | null>(null)
-    const [categories, setCategories] = useState<Category[]>([])
-    const [selectedVariant, setSelectedVariant] = useState<Record<string, string>>({})
-    const [comment, setComment] = useState('')
-    const [rating, setRating] = useState(5)
-    const [message, setMessage] = useState('')
-    const [userId, setUserId] = useState('')
-    const [isEditing, setIsEditing] = useState(false)
-    const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const router = useRouter()
+  const { id } = useParams()
+  const { isAuthenticated, token } = useAuthStore()
+  const [product, setProduct] = useState<Product | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [selectedVariant, setSelectedVariant] = useState<Record<string, string>>({})
+  const [comment, setComment] = useState('')
+  const [rating, setRating] = useState(5)
+  const [message, setMessage] = useState('')
+  const [userId, setUserId] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-    const fetchProduct = async () => {
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`)
-            const data = await res.json()
-            setProduct(data)
+  const fetchProduct = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`)
+      const data = await res.json()
+      setProduct(data)
+      trackProductView(data._id, data.category?._id)
+    } catch (error) {
+      console.error('Failed to fetch product:', error)
+    }
+  }
 
-            trackProductView(data._id, data.category?._id)
-        } catch (error) {
-            console.error('Failed to fetch product:', error)
-        }
+  const fetchUser = async () => {
+    if (!isAuthenticated || !token) return
+    logTokenInfo(token, 'ProductDetail')
+    if (!isValidJWT(token)) {
+      console.error('Invalid JWT token in ProductDetail')
+      return
     }
 
-    const fetchUser = async () => {
-        if (!isAuthenticated || !token) return
-
-        logTokenInfo(token, 'ProductDetail')
-
-        if (!isValidJWT(token)) {
-            console.error('Invalid JWT token in ProductDetail')
-            return
-        }
-
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            })
-            const user = await res.json()
-            setUserId(user._id)
-        } catch (error) {
-            console.error('Failed to fetch user:', error)
-        }
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+      const user = await res.json()
+      setUserId(user._id)
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
     }
+  }
 
-    const fetchCategories = async () => {
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
-            const data = await res.json()
-            setCategories(data)
-        } catch (error) {
-            console.error('Failed to fetch categories:', error)
-        }
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
+      const data = await res.json()
+      setCategories(data)
+    } catch (error) {
+      console.error('Failed to fetch categories:', error)
     }
+  }
 
-    useEffect(() => {
-        fetchProduct()
-        fetchUser()
-        fetchCategories()
-    }, [id])
+  useEffect(() => {
+    fetchProduct()
+    fetchUser()
+    fetchCategories()
+  }, [id])
 
-    useEffect(() => {
-        if (!product || !userId) return
-        const existingReview = product.reviews.find(r =>
-            (typeof r.user === 'string' ? r.user : r.user._id) === userId
-        )
-        if (existingReview) {
-            setComment(existingReview.comment)
-            setRating(existingReview.rating)
-        }
-    }, [product, userId])
-
-    const handleNextImage = () => {
-        if (product && product.images && product.images.length > 1) {
-            setCurrentImageIndex(prev => (prev + 1) % (product?.images?.length || 1))
-        }
-    }
-
-    const handlePrevImage = () => {
-        if (product && product.images && product.images.length > 1) {
-            setCurrentImageIndex(prev =>
-                (prev - 1 + product.images.length) % product.images.length
-            )
-        }
-    }
-
-    // Review handlers
-    const handleReviewSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setMessage('')
-
-        try {
-            if (!isAuthenticated || !token) {
-                setMessage('Please login to submit a review')
-                return
-            }
-
-            logTokenInfo(token, 'ReviewSubmit')
-
-            if (!isValidJWT(token)) {
-                console.error('Invalid JWT token in ReviewSubmit')
-                setMessage('Authentication error. Please login again.')
-                return
-            }
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}/reviews`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                credentials: 'include',
-                body: JSON.stringify({ rating: Number(rating), comment })
-            })
-
-            if (!res.ok) {
-                const error = await res.json()
-                throw new Error(error.message || 'Failed to submit review')
-            }
-
-            const data = await res.json()
-            setProduct(data)
-            setMessage('Review submitted successfully!')
-            setIsEditing(false)
-            resetReviewForm()
-        } catch (error) {
-            setMessage((error as Error).message || 'Failed to submit review')
-        }
-    }
-
-    const handleDeleteReview = async () => {
-        if (!confirm('Are you sure you want to delete this review?')) return
-
-        try {
-            if (!isAuthenticated || !token) {
-                setMessage('Please login to delete your review')
-                return
-            }
-
-            logTokenInfo(token, 'ReviewDelete')
-
-            if (!isValidJWT(token)) {
-                console.error('Invalid JWT token in ReviewDelete')
-                setMessage('Authentication error. Please login again.')
-                return
-            }
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}/reviews`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            })
-
-            if (!res.ok) {
-                const error = await res.json()
-                throw new Error(error.message || 'Failed to delete review')
-            }
-
-            const data = await res.json()
-            setProduct(data)
-            resetReviewForm()
-            setMessage('Review deleted successfully!')
-        } catch (error) {
-            setMessage((error as ApiError).message || 'Error while deleting review')
-        }
-    }
-
-    const resetReviewForm = () => {
-        setComment('')
-        setRating(5)
-        setIsEditing(false)
-    }
-
-    const handleEditClick = (review: Review) => {
-        setComment(review.comment)
-        setRating(review.rating)
-        setIsEditing(true)
-    }
-
-    const handleAddToCart = async () => {
-        if (!product) return
-
-        const cartItem: CartItem = {
-            product: {
-                _id: product._id,
-                name: product.name,
-                price: product.price,
-                image: product.images[0]
-            },
-            quantity: 1,
-            ...(selectedVariant)
-        }
-
-        try {
-            await useCartStore.getState().addItem(cartItem, token || undefined)
-            alert('Added to cart!')
-        } catch (error) {
-            console.error('Add to cart error:', error)
-            alert((error as Error).message || 'Failed to add to cart')
-        }
-    }
-
-    const averageRating = product?.reviews?.length
-        ? (product.reviews
-            .filter(r => r.isApproved)
-            .reduce((acc, cur) => acc + cur.rating, 0) /
-            product.reviews.filter(r => r.isApproved).length
-        ).toFixed(1)
-        : null
-
-    // Helper to get all variant keys (e.g., size, color, type, etc.)
-    const variantKeys = product?.variants && product.variants.length > 0
-        ? Array.from(new Set(product.variants.flatMap(v => Object.keys(v).filter(k => v[k] !== undefined))))
-        : []
-
-    // Helper to get unique values for a variant key
-    const getVariantValues = (key: string) =>
-        Array.from(new Set(product?.variants?.map(v => v[key]).filter((val): val is string => !!val)))
-
-    if (!product) return <div className="p-6 text-2xl font-black">Loading...</div>
-
-    return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <button
-                onClick={() => router.back()}
-                className="mb-6 px-4 py-2 bg-black border-4 border-black font-black"
-            >
-                ← BACK
-            </button>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border-4 border-black bg-black p-4">
-                    <div className="relative aspect-square w-full">
-                        <Image
-                            src={product.images[currentImageIndex] || '/placeholder.jpg'}
-                            alt={product.name}
-                            fill
-                            className="object-cover border-4 border-black"
-                        />
-
-                        {product.images.length > 1 && (
-                            <>
-                                <button
-                                    onClick={handlePrevImage}
-                                    className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-gray-400 border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
-                                >
-                                    ◀
-                                </button>
-                                <button
-                                    onClick={handleNextImage}
-                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-gray-400 border-4 border-black px-2 py-1 font-black hover:bg-gray-100"
-                                >
-                                    ▶
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Thumbnail row */}
-                    <div className="flex mt-4 gap-2 overflow-x-auto">
-                        {product.images.map((img: string, index: number) => (
-                            <div
-                                key={index}
-                                className={`relative w-16 aspect-square flex-shrink-0 cursor-pointer border-4 ${currentImageIndex === index ? 'border-red-500' : 'border-gray-400'
-                                    }`}
-                                onClick={() => setCurrentImageIndex(index)}
-                            >
-                                <Image
-                                    src={img}
-                                    alt={`Thumbnail ${index}`}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="bg-pink-200 border-4 border-black p-6">
-                    <h1 className="text-4xl font-black mb-4">{product.name}</h1>
-                    <p className="text-xl font-bold mb-4 bg-gray-400 border-2 border-black p-2">{product.description}</p>
-                    <p className="text-3xl font-black mb-4 bg-yellow-500 inline-block p-2 border-4 border-black">
-                        ₺{product.price}
-                    </p>
-
-                    {averageRating && (
-                        <p className="text-lg font-bold mb-2 bg-gray-500 border-2 border-black px-2 py-1 inline-block">
-                            ⭐ {averageRating}/5
-                        </p>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-4xl font-black mb-4">{product.name}</h1>
-                        <FavoriteButton productId={product._id} variant="detail" />
-                    </div>
-
-                    {/* Variant selectors */}
-                    {product.variants?.length > 0 && (
-                        <div className="mt-4">
-                            {variantKeys.map((key) => (
-                                <div className="mb-2" key={key}>
-                                    <label className="font-black capitalize">{key}:</label>
-                                    <div className="flex gap-2 mt-1 bg-blue-20">
-                                        {getVariantValues(key).map((val) => (
-                                            <button
-                                                key={val}
-                                                onClick={() => setSelectedVariant((prev) => ({ ...prev, [key]: val }))}
-                                                className={`border px-3 py-1 rounded font-bold text-gray-800 ${selectedVariant[key] === val ? 'bg-gray-300 text-gray-100' : ''}`}
-                                            >
-                                                {val}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    <button
-                        onClick={async () => {
-                            const newItem: CartItem = {
-                                product: {
-                                    _id: product._id,
-                                    name: product.name,
-                                    price: product.price,
-                                    image: product.images[0]
-                                },
-                                quantity: 1,
-                                ...selectedVariant
-                            }
-
-                            try {
-                                await useCartStore.getState().addItem(newItem, token || undefined)
-                                alert('Added to cart!')
-                            } catch (error) {
-                                console.error('Add to cart error:', error)
-                                alert((error as Error).message || 'Failed to add to cart')
-                            }
-                        }}
-                        disabled={product.variants?.length > 0 && variantKeys.some(key => !selectedVariant[key])}
-                        className={`w-full p-4 text-white border-4 border-black font-black mt-4 transition-all duration-150
-                            ${product.variants?.length > 0 && variantKeys.some(key => !selectedVariant[key])
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-400 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
-                            }`}
-                    >
-                        {product.variants?.length > 0 && variantKeys.some(key => !selectedVariant[key])
-                            ? `PLEASE SELECT ${variantKeys.filter(key => !selectedVariant[key]).map(k => k.toUpperCase()).join(' & ')}`
-                            : 'ADD TO CART'
-                        }
-                    </button>
-
-                </div>
-            </div>
-
-            {/* Reviews */}
-            <div className="mt-12 bg-yellow-500 border-4 border-black p-6">
-                <h2 className="text-3xl font-black mb-6">CUSTOMER REVIEWS</h2>
-
-                {/* Show message if review is pending approval */}
-                {product.reviews.some((r: Review) => (typeof r.user === 'string' ? r.user : r.user._id) === userId && !r.isApproved) && (
-                    <div className="bg-blue-200 border-4 border-black p-4 mb-4 font-bold">
-                        Your review is pending approval. It will be visible once approved by an admin.
-                    </div>
-                )}
-
-                {/* Only show approved reviews */}
-                {product.reviews
-                    .filter((review: Review) => review.isApproved)
-                    .map((review: Review, idx: number) => (
-                        <div key={idx} className="bg-gray-500 border-4 border-black p-4 mb-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                    <p className="font-black text-xl">{'⭐'.repeat(review.rating)}</p>
-                                    <p className="text-sm font-bold bg-pink-400 px-2 py-1 border-2 border-black">
-                                        {new Date(review.createdAt).toLocaleDateString()}
-                                    </p>
-                                </div>
-                                <p className="font-bold text-sm bg-blue-400 px-2 py-1 border-2 border-black">
-                                    {review.user?.firstName} {review.user?.lastName?.charAt(0)}.
-                                </p>
-                            </div>
-                            <p className="font-bold mb-2">{review.comment}</p>
-
-                            {userId === review.user._id && (
-                                <div className="flex gap-2 mt-2">
-                                    <button
-                                        onClick={() => handleEditClick(review)}
-                                        className="text-sm px-2 py-1 bg-yellow-500 border-2 border-black font-black"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={handleDeleteReview}
-                                        className="text-sm px-2 py-1 bg-red-400 border-2 border-black font-black"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-
-                {/* Show message if no approved reviews */}
-                {product.reviews.filter((r: Review) => r.isApproved).length === 0 && (
-                    <div className="bg-gray-200 border-4 border-black p-4 text-center font-bold bg-gray-400">
-                        No reviews yet. Be the first to review this product!
-                    </div>
-                )}
-
-                {/* Review form */}
-                <div id="review-form" className="mt-8 bg-blue-300 border-4 border-black p-6">
-                    <h3 className="text-2xl font-black mb-4">
-                        {isEditing ? 'EDIT YOUR REVIEW' : 'WRITE A REVIEW'}
-                    </h3>
-                    <form onSubmit={handleReviewSubmit} className="space-y-4">
-                        <div>
-                            <label className="font-black block mb-2">RATING</label>
-                            <select
-                                value={rating}
-                                onChange={e => setRating(Number(e.target.value))}
-                                className="w-full p-3 border-4 border-black font-bold bg-gray-400"
-                            >
-                                {[1, 2, 3, 4, 5].map(n => (
-                                    <option key={n} value={n}>{'⭐'.repeat(n)}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="font-black block mb-2">COMMENT</label>
-                            <textarea
-                                value={comment}
-                                onChange={e => setComment(e.target.value)}
-                                className="w-full p-3 border-4 border-black font-bold bg-gray-400"
-                                rows={4}
-                                required
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full p-3 bg-green-400 border-4 border-black font-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all duration-200"
-                        >
-                            {isEditing ? 'UPDATE REVIEW' : 'SUBMIT REVIEW'}
-                        </button>
-                        {isEditing && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsEditing(false)
-                                    setComment('')
-                                    setRating(5)
-                                }}
-                                className="w-full p-3 bg-gray-400 border-4 border-black font-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all duration-200"
-                            >
-                                CANCEL EDIT
-                            </button>
-                        )}
-                        {message && (
-                            <div className={`p-3 mt-2 border-4 border-black font-black ${message.includes('success') ? 'bg-green-300' : 'bg-red-300'}`}>
-                                {message}
-                            </div>
-                        )}
-                    </form>
-                </div>
-            </div>
-
-            {/* Related Products */}
-            {product && categories.length > 0 && (
-                <>
-                    <RelatedProducts productId={product._id} categories={categories} />
-                </>
-            )}
-        </div>
+  useEffect(() => {
+    if (!product || !userId) return
+    const existingReview = product.reviews.find((r) =>
+      (typeof r.user === 'string' ? r.user : r.user._id) === userId
     )
+    if (existingReview) {
+      setComment(existingReview.comment)
+      setRating(existingReview.rating)
+    }
+  }, [product, userId])
+
+  const handleNextImage = () => {
+    if (product && product.images && product.images.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % (product?.images?.length || 1))
+    }
+  }
+
+  const handlePrevImage = () => {
+    if (product && product.images && product.images.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length)
+    }
+  }
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage('')
+
+    try {
+      if (!isAuthenticated || !token) {
+        setMessage('Please login to submit a review')
+        return
+      }
+
+      logTokenInfo(token, 'ReviewSubmit')
+      if (!isValidJWT(token)) {
+        setMessage('Authentication error. Please login again.')
+        return
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ rating: Number(rating), comment })
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.message || 'Failed to submit review')
+      }
+
+      const data = await res.json()
+      setProduct(data)
+      setMessage('Review submitted successfully!')
+      setIsEditing(false)
+      resetReviewForm()
+    } catch (error) {
+      setMessage((error as Error).message || 'Failed to submit review')
+    }
+  }
+
+  const handleDeleteReview = async () => {
+    if (!confirm('Are you sure you want to delete this review?')) return
+
+    try {
+      if (!isAuthenticated || !token) {
+        setMessage('Please login to delete your review')
+        return
+      }
+
+      logTokenInfo(token, 'ReviewDelete')
+      if (!isValidJWT(token)) {
+        setMessage('Authentication error. Please login again.')
+        return
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}/reviews`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.message || 'Failed to delete review')
+      }
+
+      const data = await res.json()
+      setProduct(data)
+      resetReviewForm()
+      setMessage('Review deleted successfully!')
+    } catch (error) {
+      setMessage((error as ApiError).message || 'Error while deleting review')
+    }
+  }
+
+  const resetReviewForm = () => {
+    setComment('')
+    setRating(5)
+    setIsEditing(false)
+  }
+
+  const handleEditClick = (review: Review) => {
+    setComment(review.comment)
+    setRating(review.rating)
+    setIsEditing(true)
+  }
+
+  const handleAddToCart = async () => {
+    if (!product) return
+
+    const cartItem: CartItem = {
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0]
+      },
+      quantity: 1,
+      ...(selectedVariant)
+    }
+
+    try {
+      await useCartStore.getState().addItem(cartItem, token || undefined)
+      alert('Added to cart!')
+    } catch (error) {
+      console.error('Add to cart error:', error)
+      alert((error as Error).message || 'Failed to add to cart')
+    }
+  }
+
+  const averageRating = product?.reviews?.length
+    ? (
+      product.reviews
+        .filter((r) => r.isApproved)
+        .reduce((acc, cur) => acc + cur.rating, 0) /
+      product.reviews.filter((r) => r.isApproved).length
+    ).toFixed(1)
+    : null
+
+  const variantKeys = product?.variants && product.variants.length > 0
+    ? Array.from(new Set(product.variants.flatMap((v) => Object.keys(v).filter((k) => v[k] !== undefined))))
+    : []
+
+  const getVariantValues = (key: string) =>
+    Array.from(new Set(product?.variants?.map((v) => v[key]).filter((val): val is string => !!val)))
+
+  if (!product) return <div className="page-shell text-lg text-gray-700">Loading...</div>
+
+  const categoryLabel = categories.length ? getCategoryName(product.category, categories) : product.category?.name
+
+  return (
+    <div className="page-shell max-w-6xl space-y-10">
+      <button onClick={() => router.back()} className="ghost-btn">
+        Back
+      </button>
+
+      <div className="section grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-4">
+          <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-gray-200">
+            <Image
+              src={product.images[currentImageIndex] || '/placeholder.jpg'}
+              alt={product.name}
+              fill
+              className="object-cover transition duration-500"
+            />
+
+            {product.images.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="ghost-btn absolute left-3 top-1/2 -translate-y-1/2 text-lg"
+                >
+                  ←
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="ghost-btn absolute right-3 top-1/2 -translate-y-1/2 text-lg"
+                >
+                  →
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto">
+            {product.images.map((img: string, index: number) => (
+              <button
+                key={index}
+                className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border ${currentImageIndex === index ? 'border-orange-300' : 'border-gray-200'}`}
+                onClick={() => setCurrentImageIndex(index)}
+              >
+                <Image
+                  src={img}
+                  alt={`Thumbnail ${index}`}
+                  fill
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <p className="pill w-fit">{categoryLabel || 'Product'}</p>
+              <h1 className="text-3xl font-semibold text-gray-900">{product.name}</h1>
+              <p className="text-gray-700">{product.description}</p>
+            </div>
+            <FavoriteButton productId={product._id} variant="detail" />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <p className="rounded-2xl bg-gray-100 px-4 py-2 text-2xl font-semibold text-gray-900">
+              ${product.price}
+            </p>
+            {averageRating && (
+              <span className="pill">Rated {averageRating}/5</span>
+            )}
+            <span className="pill">{product.reviews?.length || 0} reviews</span>
+          </div>
+
+          {product.variants?.length > 0 && (
+            <div className="space-y-3">
+              {variantKeys.map((key) => (
+                <div className="space-y-2" key={key}>
+                  <p className="text-sm font-semibold text-gray-800 capitalize">{key}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {getVariantValues(key).map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => setSelectedVariant((prev) => ({ ...prev, [key]: val }))}
+                        className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${selectedVariant[key] === val
+                          ? 'border-orange-400 bg-orange-50 text-orange-800'
+                          : 'border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={handleAddToCart}
+            disabled={product.variants?.length > 0 && variantKeys.some((key) => !selectedVariant[key])}
+            className="primary-btn w-full justify-center disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {product.variants?.length > 0 && variantKeys.some((key) => !selectedVariant[key])
+              ? `Select ${variantKeys.filter((key) => !selectedVariant[key]).join(' / ')}`
+              : 'Add to cart'}
+          </button>
+        </div>
+      </div>
+
+      <div className="section space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="headline">Customer reviews</h2>
+          {product.reviews.some((r: Review) => (typeof r.user === 'string' ? r.user : r.user._id) === userId && !r.isApproved) && (
+            <span className="pill bg-amber-50 text-amber-700">
+              Your review is pending approval
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          {product.reviews
+            .filter((review: Review) => review.isApproved)
+            .map((review: Review, idx: number) => (
+              <div key={idx} className="surface rounded-2xl p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-amber-500">
+                    <span className="text-base">★</span>
+                    <span className="font-semibold text-gray-900">{review.rating}/5</span>
+                    <span className="pill text-xs">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    {review.user?.firstName} {review.user?.lastName?.charAt(0)}.
+                  </p>
+                </div>
+                <p className="mt-3 text-gray-800">{review.comment}</p>
+
+                {userId === review.user._id && (
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => handleEditClick(review)}
+                      className="ghost-btn px-3 py-2 text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={handleDeleteReview}
+                      className="ghost-btn px-3 py-2 text-sm text-rose-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+
+          {product.reviews.filter((r: Review) => r.isApproved).length === 0 && (
+            <div className="surface rounded-2xl p-4 text-center text-gray-700">
+              No reviews yet. Be the first to review this product.
+            </div>
+          )}
+        </div>
+
+        <div id="review-form" className="surface rounded-2xl p-6">
+          <h3 className="text-xl font-semibold text-gray-900">
+            {isEditing ? 'Edit your review' : 'Write a review'}
+          </h3>
+          <form onSubmit={handleReviewSubmit} className="mt-4 space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-800">Rating</label>
+              <select
+                value={rating}
+                onChange={(e) => setRating(Number(e.target.value))}
+                className="input"
+              >
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>{`${n} star${n > 1 ? 's' : ''}`}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-800">Comment</label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="input min-h-[120px]"
+                required
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="submit"
+                className="primary-btn justify-center"
+              >
+                {isEditing ? 'Update review' : 'Submit review'}
+              </button>
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(false)
+                    setComment('')
+                    setRating(5)
+                  }}
+                  className="ghost-btn justify-center"
+                >
+                  Cancel edit
+                </button>
+              )}
+            </div>
+            {message && (
+              <div className={`rounded-xl border px-4 py-3 text-sm font-semibold ${message.includes('success') ? 'border-emerald-400/40 bg-emerald-50 text-emerald-700' : 'border-rose-400/40 bg-rose-50 text-rose-700'}`}>
+                {message}
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+
+      {product && categories.length > 0 && (
+        <RelatedProducts productId={product._id} categories={categories} />
+      )}
+    </div>
+  )
 }

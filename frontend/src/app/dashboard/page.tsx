@@ -6,99 +6,117 @@ import { useAuthStore } from '@/store/authStore'
 import { User } from '@/types'
 
 export default function DashboardPage() {
-    const [user, setUser] = useState<User | null>(null)
-    const [loading, setLoading] = useState(true)
-    const router = useRouter()
-    const { isAuthenticated, user: authUser, checkAuth } = useAuthStore()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { isAuthenticated, user: authUser, checkAuth } = useAuthStore()
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            if (!isAuthenticated) {
-                await checkAuth()
-                if (!isAuthenticated) {
-                    router.push('/login')
-                    return
-                }
-            }
-
-            if (authUser) {
-                setUser(authUser)
-                setLoading(false)
-            }
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!isAuthenticated) {
+        await checkAuth()
+        if (!isAuthenticated) {
+          router.push('/login')
+          return
         }
+      }
 
-        fetchUser()
-    }, [isAuthenticated, authUser, checkAuth, router])
+      if (authUser) {
+        setUser(authUser)
+        setLoading(false)
+      }
+    }
 
-    if (loading) return <p className="p-4">Loading...</p>
-    if (!user) return <p className="p-4 text-red-500">Failed to load user data.</p>
+    fetchUser()
+  }, [isAuthenticated, authUser, checkAuth, router])
 
-    return (
-        <div className="max-w-2xl mx-auto p-6">
-            <h1 className="text-5xl font-black mb-8 transform -rotate-2">MY DASHBOARD</h1>
+  if (loading) return <p className="p-4">Loading...</p>
+  if (!user) return <p className="p-4 text-red-500">Failed to load user data.</p>
 
-            <div className="bg-pink-200 border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                <h2 className="text-2xl font-black mb-4 transform -rotate-1">PROFILE INFO</h2>
-                <div className="space-y-2 font-bold">
-                    <p className="bg-gray-400 border-2 border-black p-2 text-black">
-                        <span className="font-black">NAME:</span> {user.firstName} {user.lastName}
-                    </p>
-                    <p className="bg-gray-400 border-2 border-black p-2 text-black">
-                        <span className="font-black">EMAIL:</span> {user.email}
-                    </p>
-                    <p className="bg-gray-400 border-2 border-black p-2 text-black">
-                        <span className="font-black">PHONE:</span> {user.phone || '-'}
-                    </p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                <button
-                    onClick={() => router.push('/dashboard/edit-profile')}
-                    className="p-4 bg-yellow-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
-                >
-                    ✏️ EDIT PROFILE
-                </button>
-                <button
-                    onClick={() => router.push('/dashboard/change-password')}
-                    className="p-4 bg-blue-400 text-white border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
-                >
-                    🔒 CHANGE PASSWORD
-                </button>
-                <button
-                    onClick={() => router.push('/dashboard/addresses')}
-                    className="p-4 bg-green-300 border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
-                >
-                    📍 MANAGE ADDRESSES
-                </button>
-            </div>
-
-            <div className="bg-yellow-200 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                <h2 className="text-2xl font-black mb-4 transform -rotate-1">MY ADDRESSES</h2>
-                {user.addresses && user.addresses.length > 0 ? (
-                    <div className="space-y-3">
-                        {user.addresses.map((addr, idx) => (
-                            <div key={idx} className="bg-gray-400 border-2 border-black p-3">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="font-black text-lg">
-                                        {addr.label || 'ADDRESS ' + (idx + 1)}
-                                    </span>
-                                    {addr.isDefault && (
-                                        <span className="bg-blue-400 text-white px-2 py-1 text-sm border-2 border-black font-bold">
-                                            DEFAULT
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="font-bold">
-                                    {addr.street}, {addr.city}, {addr.country} {addr.postalCode}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="font-bold bg-gray-400 border-2 border-black p-3">No addresses saved.</p>
-                )}
-            </div>
+  return (
+    <div className="page-shell space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="pill">Welcome back</p>
+          <h1 className="headline">Account overview</h1>
         </div>
-    )
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => router.push('/dashboard/edit-profile')} className="ghost-btn text-sm">
+            Edit profile
+          </button>
+          <button onClick={() => router.push('/dashboard/change-password')} className="ghost-btn text-sm">
+            Change password
+          </button>
+          <button onClick={() => router.push('/dashboard/addresses')} className="primary-btn text-sm">
+            Addresses
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="section space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
+          <div className="space-y-2 text-sm text-gray-700">
+            <div className="surface rounded-lg p-3">
+              <p className="font-semibold text-gray-900">Name</p>
+              <p>{user.firstName} {user.lastName}</p>
+            </div>
+            <div className="surface rounded-lg p-3">
+              <p className="font-semibold text-gray-900">Email</p>
+              <p>{user.email}</p>
+            </div>
+            <div className="surface rounded-lg p-3">
+              <p className="font-semibold text-gray-900">Phone</p>
+              <p>{user.phone || '-'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="section space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900">Quick actions</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button onClick={() => router.push('/orders')} className="surface rounded-lg p-4 text-left font-semibold text-gray-900 hover:border-gray-300 hover:bg-gray-50">
+              View orders
+            </button>
+            <button onClick={() => router.push('/favorites')} className="surface rounded-lg p-4 text-left font-semibold text-gray-900 hover:border-gray-300 hover:bg-gray-50">
+              Favorites
+            </button>
+            <button onClick={() => router.push('/dashboard/addresses')} className="surface rounded-lg p-4 text-left font-semibold text-gray-900 hover:border-gray-300 hover:bg-gray-50">
+              Manage addresses
+            </button>
+            <button onClick={() => router.push('/checkout')} className="surface rounded-lg p-4 text-left font-semibold text-gray-900 hover:border-gray-300 hover:bg-gray-50">
+              Checkout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="section space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">Saved addresses</h2>
+          <button onClick={() => router.push('/dashboard/addresses')} className="ghost-btn text-sm">Manage</button>
+        </div>
+        {user.addresses && user.addresses.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {user.addresses.map((addr, idx) => (
+              <div key={idx} className="surface rounded-lg p-3 text-sm text-gray-700 border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-semibold text-gray-900">
+                    {addr.label || `Address ${idx + 1}`}
+                  </span>
+                  {addr.isDefault && (
+                    <span className="pill text-xs">Default</span>
+                  )}
+                </div>
+                <p>{addr.street}</p>
+                <p>{addr.city}, {addr.country} {addr.postalCode}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-600">No addresses saved.</p>
+        )}
+      </div>
+    </div>
+  )
 }
