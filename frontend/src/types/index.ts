@@ -80,6 +80,8 @@ export interface CartItem {
     quantity: number
     size?: string
     color?: string
+    variantOptions?: Record<string, string>
+    variantKey?: string
 }
 
 export interface Cart {
