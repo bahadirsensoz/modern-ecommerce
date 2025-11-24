@@ -193,6 +193,19 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product) return
 
+    const variantEntries = Object.entries(selectedVariant)
+      .filter(([, v]) => Boolean(v))
+      .sort(([a], [b]) => a.localeCompare(b))
+
+    const variantKey = variantEntries.length ? variantEntries.map(([k, v]) => `${k}:${v}`).join('|') : undefined
+    const color = selectedVariant.color
+    const optionEntries = variantEntries.filter(([k]) => k !== 'color')
+    const variantOptions = optionEntries.reduce<Record<string, string>>((acc, [k, v]) => {
+      acc[k] = v
+      return acc
+    }, {})
+    const sizeValue = optionEntries.length ? optionEntries.map(([k, v]) => `${k}:${v}`).join('|') : undefined
+
     const cartItem: CartItem = {
       product: {
         _id: product._id,
@@ -201,7 +214,11 @@ export default function ProductDetailPage() {
         image: product.images[0]
       },
       quantity: 1,
-      ...(selectedVariant)
+      ...(selectedVariant),
+      size: sizeValue,
+      color,
+      variantOptions: variantOptions,
+      variantKey
     }
 
     try {
