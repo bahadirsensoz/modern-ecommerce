@@ -9,11 +9,10 @@ import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 interface Props {
     productId: string
-    initialIsFavorite?: boolean
     variant?: 'card' | 'detail'
 }
 
-export default function FavoriteButton({ productId, initialIsFavorite, variant = 'card' }: Props) {
+export default function FavoriteButton({ productId, variant = 'card' }: Props) {
     const router = useRouter()
     const { user, isAuthenticated, token } = useAuthStore()
     const [isFavorite, setIsFavorite] = useState<boolean>(false)
@@ -65,7 +64,6 @@ export default function FavoriteButton({ productId, initialIsFavorite, variant =
 
             if (!res.ok) throw new Error('Failed to toggle favorite')
 
-            const data = await res.json()
             setIsFavorite(prev => !prev)
         } catch (error) {
             console.error('Failed to toggle favorite:', error)
@@ -73,8 +71,8 @@ export default function FavoriteButton({ productId, initialIsFavorite, variant =
     }
 
     const buttonClass = variant === 'card'
-        ? 'absolute top-2 right-2 z-10 text-red-500 text-xl bg-gray-400 rounded-full p-2 shadow border-2 border-black'
-        : 'text-red-500 text-2xl bg-gray-400 rounded-full p-2 border-2 border-black hover:scale-110 transition'
+        ? 'absolute top-2 right-2 z-10 rounded-full border border-gray-200 bg-white/90 p-2 text-lg text-[#f68b1e] shadow-sm backdrop-blur hover:shadow hover:-translate-y-0.5 transition'
+        : 'rounded-full border border-gray-200 bg-white p-3 text-xl text-[#f68b1e] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition'
 
     return (
         <button

@@ -1,34 +1,148 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --page-bg: #f7f7f8;
+  --card: #ffffff;
+  --surface: #f9fafb;
+  --pill-bg: #f3f4f6;
+  --muted: #6b7280;
+  --fg: #111827;
+  --accent: #f68b1e;
+  --accent-2: #0f172a;
+  --border: #e5e7eb;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --page-bg: #0b1220;
+    --card: #0f172a;
+    --surface: #111b2f;
+    --pill-bg: #1f2937;
+    --muted: #cbd5e1;
+    --fg: #e5e7eb;
+    --accent: #f7a14a;
+    --accent-2: #e5e7eb;
+    --border: #1f2937;
   }
 }
 
+@theme inline {
+  --color-background: var(--page-bg);
+  --color-foreground: var(--fg);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--page-bg);
+  color: var(--fg);
+  font-family: var(--font-geist-sans), 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  letter-spacing: 0.005em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(246, 139, 30, 0.18);
+  color: #000;
+}
+
+.page-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+  width: 100%;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+.headline {
+  @apply text-2xl md:text-3xl font-semibold tracking-tight;
+  color: var(--fg);
+}
+
+.subtle {
+  color: var(--muted);
+}
+
+.pill {
+  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium;
+  background: var(--pill-bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+
+.primary-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 font-semibold transition-colors duration-200;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(246, 139, 30, 0.25);
+}
+
+.primary-btn:hover {
+  background: #e67c15;
+}
+
+.ghost-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 font-semibold transition-colors duration-150;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--fg);
+}
+
+.ghost-btn:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
 }
 
 .input {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
+  @apply w-full rounded-lg border px-4 py-3 text-base text-[#111827] shadow-sm transition-all duration-150;
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--fg);
 }
 
-.btn {
-  @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200;
+.input:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.15);
+}
+
+.section {
+  @apply rounded-xl p-8 md:p-10;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .text-gray-900 { color: #e5e7eb !important; }
+  .text-gray-700 { color: #cbd5e1 !important; }
+  .text-gray-600 { color: #cbd5e1 !important; }
+  .text-gray-500 { color: #94a3b8 !important; }
+  .text-gray-400 { color: #94a3b8 !important; }
+  .bg-gray-100 { background: #111b2f !important; }
+  .bg-gray-50 { background: #0f172a !important; }
+  .border-gray-200 { border-color: #1f2937 !important; }
 }

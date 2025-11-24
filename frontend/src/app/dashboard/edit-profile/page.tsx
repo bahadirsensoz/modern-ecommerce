@@ -7,144 +7,137 @@ import { useAuthStore } from '@/store/authStore'
 import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 export default function EditProfilePage() {
-    const router = useRouter()
-    const { isAuthenticated, token } = useAuthStore()
-    const [user, setUser] = useState<User | null>(null)
-    const [firstName, setFirstName] = useState('')
-    const [lastName, setLastName] = useState('')
-    const [phone, setPhone] = useState('')
-    const [message, setMessage] = useState('')
-    const [success, setSuccess] = useState('')
-    const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const { isAuthenticated, token } = useAuthStore()
+  const [user, setUser] = useState<User | null>(null)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [message, setMessage] = useState('')
+  const [success, setSuccess] = useState('')
+  const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
-        if (!isAuthenticated || !token) {
-            router.push('/login')
-            return
-        }
-
-        logTokenInfo(token, 'EditProfile')
-
-        if (!isValidJWT(token)) {
-            console.error('Invalid JWT token in EditProfile')
-            router.push('/login')
-            return
-        }
-
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        })
-            .then(res => res.json())
-            .then(data => {
-                setUser(data)
-                setFirstName(data.firstName || '')
-                setLastName(data.lastName || '')
-                setPhone(data.phone || '')
-            })
-            .catch(() => router.push('/login'))
-    }, [router])
-
-    const handleUpdate = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setMessage('')
-        setSuccess('')
-
-        if (!isAuthenticated || !token) {
-            setMessage('Authentication error. Please login again.')
-            setLoading(false)
-            return
-        }
-
-        logTokenInfo(token, 'EditProfileUpdate')
-
-        if (!isValidJWT(token)) {
-            console.error('Invalid JWT token in EditProfileUpdate')
-            setMessage('Authentication error. Please login again.')
-            setLoading(false)
-            return
-        }
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            credentials: 'include',
-            body: JSON.stringify({ firstName, lastName, phone }),
-        })
-
-        const data = await res.json()
-        setLoading(false)
-
-        if (res.ok) {
-            setSuccess('✅ Profile updated successfully. Redirecting to dashboard...')
-            localStorage.setItem('user', JSON.stringify(data.user))
-            setTimeout(() => router.push('/dashboard'), 2000)
-        } else {
-            setMessage(data.message || 'Failed to update profile.')
-        }
+  useEffect(() => {
+    if (!isAuthenticated || !token) {
+      router.push('/login')
+      return
     }
 
-    return (
-        <div className="p-6 max-w-xl mx-auto">
+    logTokenInfo(token, 'EditProfile')
+    if (!isValidJWT(token)) {
+      router.push('/login')
+      return
+    }
 
-            <button
-                onClick={() => router.push('/dashboard')}
-                className="mb-6 px-4 py-2 bg-black border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 flex items-center gap-2"
-            >
-                ← BACK TO DASHBOARD
-            </button>
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    })
+      .then(res => res.json())
+      .then(data => {
+        setUser(data)
+        setFirstName(data.firstName || '')
+        setLastName(data.lastName || '')
+        setPhone(data.phone || '')
+      })
+      .catch(() => router.push('/login'))
+  }, [isAuthenticated, token, router])
 
-            <h1 className="text-5xl font-black mb-8 transform -rotate-2">EDIT PROFILE</h1>
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+    setSuccess('')
 
+    if (!isAuthenticated || !token) {
+      setMessage('Authentication error. Please login again.')
+      setLoading(false)
+      return
+    }
 
+    logTokenInfo(token, 'EditProfileUpdate')
+    if (!isValidJWT(token)) {
+      setMessage('Authentication error. Please login again.')
+      setLoading(false)
+      return
+    }
 
-            <form onSubmit={handleUpdate} className="bg-pink-200 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                {success && (
-                    <div className="mb-4 bg-green-300 border-4 border-black p-3 font-black">
-                        {success}
-                    </div>
-                )}
-                {message && (
-                    <div className="mb-4 bg-red-400 text-white border-4 border-black p-3 font-black">
-                        {message}
-                    </div>
-                )}
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ firstName, lastName, phone }),
+    })
 
-                <div className="space-y-4">
-                    <input
-                        value={firstName}
-                        onChange={e => setFirstName(e.target.value)}
-                        placeholder="FIRST NAME"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 text-black"
-                    />
-                    <input
-                        value={lastName}
-                        onChange={e => setLastName(e.target.value)}
-                        placeholder="LAST NAME"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 text-black"
-                    />
-                    <input
-                        value={phone}
-                        onChange={e => setPhone(e.target.value)}
-                        placeholder="PHONE"
-                        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:ring-4 focus:ring-blue-400 text-black"
-                    />
-                    <button
-                        type="submit"
-                        className="w-full p-3 bg-blue-400 text-white border-4 border-black font-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 disabled:opacity-50"
-                        disabled={loading}
-                    >
-                        {loading ? 'SAVING...' : 'SAVE CHANGES'}
-                    </button>
-                </div>
-            </form>
+    const data = await res.json()
+    setLoading(false)
+
+    if (res.ok) {
+      setSuccess('Profile updated successfully. Redirecting to dashboard...')
+      localStorage.setItem('user', JSON.stringify(data.user))
+      setTimeout(() => router.push('/dashboard'), 1500)
+    } else {
+      setMessage(data.message || 'Failed to update profile.')
+    }
+  }
+
+  return (
+    <div className="page-shell max-w-2xl space-y-6">
+      <button onClick={() => router.push('/dashboard')} className="ghost-btn">
+        Back to dashboard
+      </button>
+
+      <div className="section space-y-4">
+        <div className="space-y-1">
+          <p className="pill">Account</p>
+          <h1 className="headline">Edit profile</h1>
         </div>
-    )
+
+        {success && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            {success}
+          </div>
+        )}
+        {message && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleUpdate} className="space-y-3">
+          <input
+            value={firstName}
+            onChange={e => setFirstName(e.target.value)}
+            placeholder="First name"
+            className="input"
+          />
+          <input
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+            placeholder="Last name"
+            className="input"
+          />
+          <input
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            placeholder="Phone"
+            className="input"
+          />
+          <button
+            type="submit"
+            className="primary-btn w-full justify-center disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : 'Save changes'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
 }

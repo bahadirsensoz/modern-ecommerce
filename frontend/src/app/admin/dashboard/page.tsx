@@ -7,191 +7,153 @@ import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 import { Order, Product } from '@/types'
 
 interface DashboardStats {
-    totalSales: number
-    totalOrders: number
-    totalCustomers: number
-    totalProducts: number
-    recentOrders: Order[]
-    popularProducts: Product[]
-    orderStatusDistribution: {
-        pending: number
-        processing: number
-        shipped: number
-        delivered: number
-        cancelled: number
-    }
-    monthlySales: {
-        month: string
-        sales: number
-    }[]
+  totalSales: number
+  totalOrders: number
+  totalCustomers: number
+  totalProducts: number
+  recentOrders: Order[]
+  popularProducts: Product[]
+  orderStatusDistribution: {
+    pending: number
+    processing: number
+    shipped: number
+    delivered: number
+    cancelled: number
+  }
+  monthlySales: {
+    month: string
+    sales: number
+  }[]
 }
 
 export default function AdminDashboardPage() {
-    const { isAuthenticated, token } = useAuthStore()
-    const [stats, setStats] = useState<DashboardStats | null>(null)
-    const [loading, setLoading] = useState(true)
+  const { isAuthenticated, token } = useAuthStore()
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        if (!isAuthenticated || !token) return
+  useEffect(() => {
+    if (!isAuthenticated || !token) return
 
-        logTokenInfo(token, 'AdminDashboard')
+    logTokenInfo(token, 'AdminDashboard')
+    if (!isValidJWT(token)) return
 
-        if (!isValidJWT(token)) {
-            console.error('Invalid JWT token in AdminDashboard')
-            return
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setStats(data)
         }
-
-        const fetchDashboardStats = async () => {
-            try {
-                setLoading(true)
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
-                })
-
-                if (response.ok) {
-                    const data = await response.json()
-                    setStats(data)
-                }
-            } catch (error) {
-                console.error('Failed to fetch dashboard stats:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchDashboardStats()
-    }, [isAuthenticated, token])
-
-    if (loading) {
-        return (
-            <AdminGuard>
-                <div className="p-6 max-w-7xl mx-auto">
-                    <h1 className="text-5xl font-black mb-8 transform -rotate-2">ADMIN DASHBOARD</h1>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-gray-400 border-4 border-black p-6 animate-pulse">
-                                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                                <div className="h-8 bg-gray-200 rounded"></div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </AdminGuard>
-        )
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    return (
-        <AdminGuard>
-            <div className="p-6 max-w-7xl mx-auto">
-                <h1 className="text-5xl font-black mb-8 transform -rotate-2">ADMIN DASHBOARD</h1>
+    fetchDashboardStats()
+  }, [isAuthenticated, token])
 
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-blue-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                        <h3 className="text-lg font-black mb-2">TOTAL SALES</h3>
-                        <p className="text-3xl font-black">₺{stats?.totalSales?.toLocaleString() || '0'}</p>
-                    </div>
-                    <div className="bg-green-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                        <h3 className="text-lg font-black mb-2">TOTAL ORDERS</h3>
-                        <p className="text-3xl font-black">{stats?.totalOrders || '0'}</p>
-                    </div>
-                    <div className="bg-yellow-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                        <h3 className="text-lg font-black mb-2">TOTAL CUSTOMERS</h3>
-                        <p className="text-3xl font-black">{stats?.totalCustomers || '0'}</p>
-                    </div>
-                    <div className="bg-pink-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                        <h3 className="text-lg font-black mb-2">TOTAL PRODUCTS</h3>
-                        <p className="text-3xl font-black">{stats?.totalProducts || '0'}</p>
-                    </div>
-                </div>
+  if (loading) return <div className="page-shell text-sm text-gray-600">Loading...</div>
 
-                {/* Order Status Distribution */}
-                <div className="bg-gray-400 border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <h2 className="text-2xl font-black mb-6">ORDER STATUS DISTRIBUTION</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        <div className="text-center">
-                            <div className="bg-yellow-400 border-2 border-black p-4 mb-2">
-                                <p className="text-2xl font-black">{stats?.orderStatusDistribution?.pending || 0}</p>
-                            </div>
-                            <p className="font-black">PENDING</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-blue-400 border-2 border-black p-4 mb-2">
-                                <p className="text-2xl font-black">{stats?.orderStatusDistribution?.processing || 0}</p>
-                            </div>
-                            <p className="font-black">PROCESSING</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-purple-400 border-2 border-black p-4 mb-2">
-                                <p className="text-2xl font-black">{stats?.orderStatusDistribution?.shipped || 0}</p>
-                            </div>
-                            <p className="font-black">SHIPPED</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-green-400 border-2 border-black p-4 mb-2">
-                                <p className="text-2xl font-black">{stats?.orderStatusDistribution?.delivered || 0}</p>
-                            </div>
-                            <p className="font-black">DELIVERED</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-red-400 border-2 border-black p-4 mb-2">
-                                <p className="text-2xl font-black">{stats?.orderStatusDistribution?.cancelled || 0}</p>
-                            </div>
-                            <p className="font-black">CANCELLED</p>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <AdminGuard>
+      <div className="page-shell space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="pill">Admin</p>
+            <h1 className="headline">Dashboard</h1>
+          </div>
+        </div>
 
-                {/* Recent Orders */}
-                <div className="bg-gray-400 border-4 border-black p-6 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <h2 className="text-2xl font-black mb-6">RECENT ORDERS</h2>
-                    <div className="space-y-4">
-                        {stats?.recentOrders?.slice(0, 5).map((order: Order) => (
-                            <div key={order._id} className="bg-gray-100 border-2 border-black p-4">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="font-black">Order #{order._id.slice(-6)}</p>
-                                        <p className="text-sm">{order.email}</p>
-                                        <p className="text-sm">{new Date(order.createdAt).toLocaleDateString()}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-black text-lg">₺{order.totalPrice}</p>
-                                        <span className={`px-2 py-1 text-xs font-black border-2 border-black ${order.status === 'delivered' ? 'bg-green-400' :
-                                            order.status === 'shipped' ? 'bg-purple-400' :
-                                                order.status === 'processing' ? 'bg-blue-400' :
-                                                    order.status === 'cancelled' ? 'bg-red-400' :
-                                                        'bg-yellow-400'
-                                            }`}>
-                                            {order.status.toUpperCase()}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="section p-4">
+            <p className="text-sm text-gray-500">Total sales</p>
+            <p className="text-3xl font-semibold text-gray-900">${stats?.totalSales?.toFixed(2) || 0}</p>
+          </div>
+          <div className="section p-4">
+            <p className="text-sm text-gray-500">Orders</p>
+            <p className="text-3xl font-semibold text-gray-900">{stats?.totalOrders || 0}</p>
+          </div>
+          <div className="section p-4">
+            <p className="text-sm text-gray-500">Customers</p>
+            <p className="text-3xl font-semibold text-gray-900">{stats?.totalCustomers || 0}</p>
+          </div>
+          <div className="section p-4">
+            <p className="text-sm text-gray-500">Products</p>
+            <p className="text-3xl font-semibold text-gray-900">{stats?.totalProducts || 0}</p>
+          </div>
+        </div>
 
-                {/* Popular Products */}
-                <div className="bg-gray-400 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <h2 className="text-2xl font-black mb-6">POPULAR PRODUCTS</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {stats?.popularProducts?.slice(0, 6).map((product: Product) => (
-                            <div key={product._id} className="bg-gray-100 border-2 border-black p-4">
-                                <h3 className="font-black mb-2">{product.name}</h3>
-                                <p className="text-sm mb-2">₺{product.price}</p>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-yellow-500">{'⭐'.repeat(Math.round(product.rating))}</span>
-                                    <span className="text-sm font-bold">({product.reviews?.length || 0} reviews)</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+        <div className="section space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Order status</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-sm text-gray-700">
+            <div className="surface rounded-lg p-3">
+              <p className="text-xs text-gray-500">Pending</p>
+              <p className="text-xl font-semibold text-gray-900">{stats?.orderStatusDistribution?.pending || 0}</p>
             </div>
-        </AdminGuard>
-    )
-} 
+            <div className="surface rounded-lg p-3">
+              <p className="text-xs text-gray-500">Processing</p>
+              <p className="text-xl font-semibold text-gray-900">{stats?.orderStatusDistribution?.processing || 0}</p>
+            </div>
+            <div className="surface rounded-lg p-3">
+              <p className="text-xs text-gray-500">Shipped</p>
+              <p className="text-xl font-semibold text-gray-900">{stats?.orderStatusDistribution?.shipped || 0}</p>
+            </div>
+            <div className="surface rounded-lg p-3">
+              <p className="text-xs text-gray-500">Delivered</p>
+              <p className="text-xl font-semibold text-gray-900">{stats?.orderStatusDistribution?.delivered || 0}</p>
+            </div>
+            <div className="surface rounded-lg p-3">
+              <p className="text-xs text-gray-500">Cancelled</p>
+              <p className="text-xl font-semibold text-gray-900">{stats?.orderStatusDistribution?.cancelled || 0}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="section space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Recent orders</h2>
+          <div className="space-y-3">
+            {stats?.recentOrders?.slice(0, 5).map((order: Order) => (
+              <div key={order._id} className="surface border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="text-sm text-gray-700">
+                  <p className="font-semibold text-gray-900">Order #{order._id.slice(-6)}</p>
+                  <p>{order.email}</p>
+                  <p>{new Date(order.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold text-gray-900">${order.totalPrice}</p>
+                  <span className="pill text-xs">{order.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="section space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Popular products</h2>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {stats?.popularProducts?.slice(0, 6).map((product: Product) => (
+              <div key={product._id} className="surface border border-gray-200 rounded-lg p-4 text-sm text-gray-700 space-y-2">
+                <p className="font-semibold text-gray-900">{product.name}</p>
+                <p className="text-gray-600">${product.price}</p>
+                <div className="flex items-center gap-2 text-amber-500">
+                  <span>★ {product.rating.toFixed(1)}</span>
+                  <span className="text-gray-500">({product.reviews?.length || 0})</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </AdminGuard>
+  )
+}

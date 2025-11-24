@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <title>{metadata.title?.toString()}</title>
         <meta name="description" content={metadata.description?.toString()} />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <Navbar />
         <CartHydration />
         {children}

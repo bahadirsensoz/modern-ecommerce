@@ -7,88 +7,97 @@ import { getCategoryName } from '@/utils/getCategoryName'
 import FavoriteButton from './FavoriteButton'
 
 interface ProductCardProps {
-    product: Product
-    categories?: Category[]
-    viewMode?: 'grid' | 'list'
+  product: Product
+  categories?: Category[]
+  viewMode?: 'grid' | 'list'
 }
 
 export default function ProductCard({ product, categories, viewMode = 'grid' }: ProductCardProps) {
-    const router = useRouter()
-    const firstImage = product.images?.[0]
+  const router = useRouter()
+  const firstImage = product.images?.[0] || '/placeholder.jpg'
+  const categoryName = categories ? getCategoryName(product.category, categories) : null
 
-    if (viewMode === 'list') {
-        return (
-            <div
-                onClick={() => router.push(`/product/${product._id}`)}
-                className="bg-gray-400 border-4 border-black p-4 cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
-            >
-                <div className="flex gap-6">
-                    <div className="relative w-48 h-48 border-2 border-black flex-shrink-0">
-                        {firstImage ? (
-                            <Image
-                                src={firstImage}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-4xl">📦</span>
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="font-black text-xl mb-2">{product.name}</h3>
-                        <p className="text-2xl font-black text-red-600 mb-2">₺{product.price}</p>
-                        <p className="bg-blue-400 text-white inline-block px-2 py-1 font-bold mb-4">
-                            {categories ? getCategoryName(product.category, categories) : ''}
-                        </p>
-                        <p className="font-bold">{product.description}</p>
-                        <div className="mt-4">
-                            <span className="text-yellow-500">{'⭐'.repeat(Math.round(product.rating))}</span>
-                            <span className="font-bold ml-2">({product.reviews?.length || 0} reviews)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    const categoryName = categories ? getCategoryName(product.category, categories) : null
-
+  if (viewMode === 'list') {
     return (
-        <div
-            onClick={() => router.push(`/product/${product._id}`)}
-            className="bg-gray-400 border-4 border-black hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] cursor-pointer transition-all duration-200"
-        >
-            <div className="relative aspect-[4/3] w-full">
-                <Image
-                    src={firstImage}
-                    alt={product.name}
-                    fill
-                    className="object-cover border-b-4 border-black"
-                />
-                <FavoriteButton productId={product._id} variant="card" />
+      <div
+        onClick={() => router.push(`/product/${product._id}`)}
+        className="card cursor-pointer transition hover:-translate-y-0.5 hover:shadow-lg"
+      >
+        <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:gap-6">
+          <div className="relative h-56 w-full overflow-hidden rounded-lg border border-gray-200 md:h-48 md:w-48">
+            {firstImage ? (
+              <Image
+                src={firstImage}
+                alt={product.name}
+                fill
+                className="object-cover transition duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm text-gray-400">
+                No image
+              </div>
+            )}
+          </div>
+          <div className="flex-1 space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="pill mb-2 inline-flex">{categoryName || 'Product'}</p>
+                <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
+                <p className="text-sm text-gray-600">{product.description}</p>
+              </div>
+              <p className="rounded-lg bg-gray-100 px-3 py-2 text-lg font-semibold text-gray-900">
+                ${product.price}
+              </p>
             </div>
-            <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-black text-xl">{product.name}</h3>
-                    <p className="text-red-600 font-black text-2xl bg-yellow-300 p-1">
-                        ₺{product.price}
-                    </p>
-                </div>
-                <div className="flex justify-between items-center">
-                    {categoryName && (
-                        <p className="text-sm font-bold bg-blue-400 text-white px-2 py-1 border-2 border-black">
-                            {categoryName}
-                        </p>
-                    )}
-                    <div className="flex items-center gap-1">
-                        <span className="text-yellow-500">{'⭐'.repeat(Math.round(product.rating))}</span>
-                        <span className="text-sm font-bold">({product.reviews?.length || 0})</span>
-                    </div>
-                </div>
+            <div className="flex items-center gap-3 text-sm text-gray-600">
+              <span className="text-amber-500">★ {product.rating.toFixed(1)}</span>
+              <span className="text-gray-400">·</span>
+              <span>{product.reviews?.length || 0} reviews</span>
             </div>
+            <div className="flex items-center gap-3">
+              <span className="pill">View details</span>
+              <span className="pill">Add to cart</span>
+            </div>
+          </div>
         </div>
+      </div>
     )
+  }
+
+  return (
+    <div
+      onClick={() => router.push(`/product/${product._id}`)}
+      className="group card relative h-full cursor-pointer overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg"
+    >
+      <div className="relative aspect-[4/3] w-full overflow-hidden">
+        <Image
+          src={firstImage}
+          alt={product.name}
+          fill
+          className="object-cover transition duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent" />
+        <FavoriteButton productId={product._id} variant="card" />
+      </div>
+      <div className="flex flex-col gap-3 p-5">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+          <p className="rounded-lg bg-gray-100 px-3 py-1 text-lg font-semibold text-gray-900">
+            ${product.price}
+          </p>
+        </div>
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            {categoryName && <span className="pill">{categoryName}</span>}
+            {product.variants?.length ? <span className="pill">+ Variants</span> : null}
+          </div>
+          <div className="flex items-center gap-2 text-amber-500">
+            <span className="text-base">★</span>
+            <span>{product.rating.toFixed(1)}</span>
+            <span className="text-gray-400">({product.reviews?.length || 0})</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }

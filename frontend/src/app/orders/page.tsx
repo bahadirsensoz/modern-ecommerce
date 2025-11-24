@@ -7,134 +7,123 @@ import { Order } from '@/types'
 import { useAuthStore } from '@/store/authStore'
 import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
+const statusStyle = (status: string) => {
+  switch (status) {
+    case 'pending': return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+    case 'processing': return 'bg-blue-50 text-blue-700 border border-blue-200'
+    case 'shipped': return 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+    case 'delivered': return 'bg-green-50 text-green-700 border border-green-200'
+    default: return 'bg-gray-50 text-gray-700 border border-gray-200'
+  }
+}
+
 const OrderHistoryPage = () => {
-    const [orders, setOrders] = useState<Order[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
-    const { isAuthenticated, token } = useAuthStore()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const { isAuthenticated, token } = useAuthStore()
 
-    useEffect(() => {
-        const fetchOrders = async () => {
-            if (!isAuthenticated || !token) {
-                setLoading(false)
-                return
-            }
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!isAuthenticated || !token) {
+        setLoading(false)
+        return
+      }
 
-            logTokenInfo(token, 'OrdersPage')
+      logTokenInfo(token, 'OrdersPage')
 
-            if (!isValidJWT(token)) {
-                console.error('Invalid JWT token in OrdersPage')
-                setError('Authentication error. Please login again.')
-                setLoading(false)
-                return
-            }
+      if (!isValidJWT(token)) {
+        console.error('Invalid JWT token in OrdersPage')
+        setError('Authentication error. Please login again.')
+        setLoading(false)
+        return
+      }
 
-            try {
-                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/me`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    withCredentials: true
-                })
+      try {
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        })
 
-                setOrders(data)
-                setError('')
-            } catch (err: Error | unknown) {
-                console.error('Failed to fetch orders:', err)
-                setError(err instanceof Error ? err.message : 'Failed to fetch orders')
-            } finally {
-                setLoading(false)
-            }
-        }
+        setOrders(data)
+        setError('')
+      } catch (err: Error | unknown) {
+        console.error('Failed to fetch orders:', err)
+        setError(err instanceof Error ? err.message : 'Failed to fetch orders')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-        fetchOrders()
-    }, [])
+    fetchOrders()
+  }, [isAuthenticated, token])
 
-    if (loading) return <p className="p-4">Loading orders...</p>
-    if (error) return <p className="p-4 text-red-500">{error}</p>
-    if (orders.length === 0) return <p className="p-4">You have no orders yet.</p>
+  if (loading) return <p className="page-shell text-sm text-gray-600">Loading orders...</p>
+  if (error) return <p className="page-shell text-sm text-red-500">{error}</p>
 
-    return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-2xl font-semibold mb-4">Order History</h1>
-            <div className="overflow-x-auto">
-                <table className="w-full table-auto border border-gray-300 rounded">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="p-2 text-left">Order ID</th>
-                            <th className="p-2 text-left">Date</th>
-                            <th className="p-2 text-left">Total</th>
-                            <th className="p-2 text-left">Status</th>
-                            <th className="p-2 text-left">Paid</th>
-                            <th className="p-2 text-left">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {orders.map(order => (
-                            <tr
-                                key={order._id}
-                                className="border-t hover:bg-gray-50 transition-colors"
-                            >
-                                <td className="p-2 font-medium">
-                                    #{order._id.slice(-6).toUpperCase()}
-                                </td>
-                                <td className="p-2">
-                                    {new Date(order.createdAt).toLocaleDateString()}
-                                </td>
-                                <td className="p-2">
-                                    ${order.totalPrice.toFixed(2)}
-                                </td>
-                                <td className="p-2">
-                                    <span
-                                        className={`px-2 py-1 rounded text-sm font-medium ${order.status === 'pending'
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : order.status === 'processing'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : order.status === 'shipped'
-                                                    ? 'bg-indigo-100 text-indigo-800'
-                                                    : order.status === 'delivered'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-gray-100 text-gray-800'
-                                            }`}
-                                    >
-                                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                                    </span>
-                                </td>
-                                <td className="p-2">
-                                    {order.isPaid ? (
-                                        <span className="text-green-600">✓ Paid</span>
-                                    ) : (
-                                        <span className="text-red-600">Pending</span>
-                                    )}
-                                </td>
-                                <td className="p-2">
-                                    <Link
-                                        href={`/orders/${order._id}`}
-                                        className="text-blue-600 hover:underline hover:text-blue-800 transition-colors"
-                                    >
-                                        View Details
-                                    </Link>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {orders.length === 0 && !loading && !error && (
-                <div className="text-center py-8 text-gray-600">
-                    <p>You haven&apos;t placed any orders yet.</p>
-                    <Link
-                        href="/products"
-                        className="text-blue-600 hover:underline mt-2 inline-block"
-                    >
-                        Start Shopping
-                    </Link>
-                </div>
-            )}
+  return (
+    <div className="page-shell space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="pill">Order history</p>
+          <h1 className="headline">Your orders</h1>
         </div>
-    )
+      </div>
+
+      {orders.length === 0 ? (
+        <div className="section text-gray-700">
+          You have no orders yet.
+        </div>
+      ) : (
+        <div className="section overflow-x-auto">
+          <table className="w-full table-auto text-sm">
+            <thead>
+              <tr className="text-left text-gray-500">
+                <th className="p-2 font-medium">Order</th>
+                <th className="p-2 font-medium">Date</th>
+                <th className="p-2 font-medium">Total</th>
+                <th className="p-2 font-medium">Status</th>
+                <th className="p-2 font-medium">Paid</th>
+                <th className="p-2 font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order._id} className="border-t border-gray-200">
+                  <td className="p-2 font-semibold text-gray-900">#{order._id.slice(-6).toUpperCase()}</td>
+                  <td className="p-2 text-gray-700">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="p-2 text-gray-900">${order.totalPrice.toFixed(2)}</td>
+                  <td className="p-2">
+                    <span className={`pill ${statusStyle(order.status)}`}>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="p-2 text-gray-700">
+                    {order.isPaid ? (
+                      <span className="text-green-600 font-semibold">Paid</span>
+                    ) : (
+                      <span className="text-red-500 font-semibold">Pending</span>
+                    )}
+                  </td>
+                  <td className="p-2">
+                    <Link
+                      href={`/orders/${order._id}`}
+                      className="text-[#f68b1e] font-semibold hover:underline"
+                    >
+                      View details
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default OrderHistoryPage
