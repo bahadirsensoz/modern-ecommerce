@@ -1,25 +1,29 @@
-import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
+import { Resend } from 'resend'
 
 dotenv.config()
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // true for port 465, false for 587
-  auth: {
-    user: process.env.SMTP_EMAIL,
-    pass: process.env.SMTP_PASSWORD,
-  },
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
+// Generic email sender
 export const sendEmail = async (to: string, subject: string, html: string) => {
-  await transporter.sendMail({
-    from: `"MYSHOP Support" <${process.env.SMTP_EMAIL}>`,
-    to,
-    subject,
-    html,
-  })
+  try {
+    const result = await resend.emails.send({
+      from: process.env.EMAIL_FROM as string, // "MYSHOP Support <onboarding@resend.dev>"
+      to,
+      subject,
+      html,
+    })
+
+    console.log('Resend email sent:', {
+      to,
+      subject,
+      id: result?.data?.id,
+    })
+  } catch (error: any) {
+    console.error('Resend SEND ERROR:', error?.message || error)
+    throw error
+  }
 }
 
 // Email Templates
