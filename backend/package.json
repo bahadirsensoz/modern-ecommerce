@@ -26,7 +26,8 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.5",
     "uuid": "^11.1.0",
-    "validator": "^13.15.15"
+    "validator": "^13.15.15",
+    "@sendgrid/mail": "^8.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
