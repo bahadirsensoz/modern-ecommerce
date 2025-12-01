@@ -1,25 +1,34 @@
-import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
+import sgMail from '@sendgrid/mail'
 
 dotenv.config()
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // true for port 465, false for 587
-  auth: {
-    user: process.env.SMTP_EMAIL,
-    pass: process.env.SMTP_PASSWORD,
-  },
-})
+if (!process.env.SENDGRID_API_KEY) {
+  throw new Error('SENDGRID_API_KEY is not set')
+}
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
-  await transporter.sendMail({
-    from: `"MYSHOP Support" <${process.env.SMTP_EMAIL}>`,
+  const msg = {
     to,
+    from: process.env.EMAIL_FROM as string,
     subject,
     html,
-  })
+  }
+
+  try {
+    const [response] = await sgMail.send(msg)
+
+    console.log('SendGrid email sent:', {
+      to,
+      subject,
+      statusCode: response.statusCode,
+    })
+  } catch (error: any) {
+    console.error('SendGrid send error:', error?.response?.body || error)
+    throw new Error('Failed to send email via SendGrid')
+  }
 }
 
 // Email Templates
