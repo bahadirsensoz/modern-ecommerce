@@ -26,6 +26,7 @@ export default function ProductDetailPage() {
   const [userId, setUserId] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   const fetchProduct = useCallback(async () => {
     try {
@@ -192,7 +193,9 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = async () => {
-    if (!product) return
+    if (!product || isAddingToCart) return
+
+    setIsAddingToCart(true)
 
     const variantEntries = Object.entries(selectedVariant)
       .filter(([, v]) => Boolean(v))
@@ -228,6 +231,8 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error('Add to cart error:', error)
       alert((error as Error).message || 'Failed to add to cart')
+    } finally {
+      setIsAddingToCart(false)
     }
   }
 
@@ -358,12 +363,15 @@ export default function ProductDetailPage() {
 
           <button
             onClick={handleAddToCart}
-            disabled={product.variants?.length > 0 && variantKeys.some((key) => !selectedVariant[key])}
+            disabled={isAddingToCart || (product.variants?.length > 0 && variantKeys.some((key) => !selectedVariant[key]))}
             className="primary-btn w-full justify-center disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {product.variants?.length > 0 && variantKeys.some((key) => !selectedVariant[key])
-              ? `Select ${variantKeys.filter((key) => !selectedVariant[key]).join(' / ')}`
-              : 'Add to cart'}
+            {isAddingToCart
+              ? 'Adding...'
+              : product.variants?.length > 0 && variantKeys.some((key) => !selectedVariant[key])
+                ? `Select ${variantKeys.filter((key) => !selectedVariant[key]).join(' / ')}`
+                : 'Add to cart'
+            }
           </button>
         </div>
       </div>
