@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Category, Product } from '@/types'
 import { getCategoryName } from '@/utils/getCategoryName'
 import AdminGuard from '@/components/guards/AdminGuard'
@@ -20,7 +20,11 @@ function EditProductModal({ open, onClose, product, categories, onSave }: {
   const [price, setPrice] = useState(product?.price?.toString() || '')
   const [stock, setStock] = useState(product?.stock?.toString() || '0')
   const [isActive, setIsActive] = useState(product?.isActive ?? true)
-  const [categoryId, setCategoryId] = useState(product?.category?._id || '')
+  const [categoryId, setCategoryId] = useState(() => {
+    if (!product?.category) return ''
+    return typeof product.category === 'string' ? product?.category : product?.category?._id || ''
+  })
+  const [categoryIdState, setCategoryIdState] = useState(categoryId)
 
   useEffect(() => {
     setName(product?.name || '')
@@ -28,30 +32,39 @@ function EditProductModal({ open, onClose, product, categories, onSave }: {
     setPrice(product?.price?.toString() || '')
     setStock(product?.stock?.toString() || '0')
     setIsActive(product?.isActive ?? true)
-    setCategoryId(product?.category?._id || '')
+
+    if (product?.category) {
+      setCategoryId(typeof product.category === 'string' ? product.category : product.category._id)
+    } else {
+      setCategoryId('')
+    }
   }, [product])
 
   if (!open || !product) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="section w-full max-w-md space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">Edit product</h2>
-        <input value={name} onChange={e => setName(e.target.value)} className="input" placeholder="Name" />
-        <input value={description} onChange={e => setDescription(e.target.value)} className="input" placeholder="Description" />
-        <input value={price} onChange={e => setPrice(e.target.value)} className="input" placeholder="Price" type="number" />
-        <input value={stock} onChange={e => setStock(e.target.value)} className="input" placeholder="Stock" type="number" />
-        <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="input">
+      <div className="section w-full max-w-md space-y-3 dark:bg-slate-800 dark:border-slate-700">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit product</h2>
+        <input value={name} onChange={e => setName(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Name" />
+        <input value={description} onChange={e => setDescription(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Description" />
+        <input value={price} onChange={e => setPrice(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Price" type="number" />
+        <input value={stock} onChange={e => setStock(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Stock" type="number" />
+        <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white">
           <option value="">Select Category</option>
           {categories.map(cat => <option key={cat._id} value={cat._id}>{cat.name}</option>)}
         </select>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
           <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} /> Active
         </label>
         <div className="flex justify-end gap-2 pt-2">
-          <button className="ghost-btn text-sm" onClick={onClose}>Cancel</button>
+          <button className="ghost-btn text-sm dark:text-gray-400 dark:hover:bg-slate-700" onClick={onClose}>Cancel</button>
           <button className="primary-btn text-sm" onClick={() => {
-            const updated = { ...product, name, description, price: parseFloat(price), stock: parseInt(stock), isActive, category: { ...product.category, _id: categoryId } }
+            const categoryUpdate = typeof product.category === 'string'
+              ? { _id: categoryId }
+              : { ...product.category, _id: categoryId }
+
+            const updated = { ...product, name, description, price: parseFloat(price), stock: parseInt(stock), isActive, category: categoryUpdate } as Product
             onSave(updated)
           }}>Save</button>
         </div>
@@ -76,25 +89,25 @@ export default function AdminProductsPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/admin`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       credentials: 'include'
     })
     const data = await res.json()
     setProducts(data)
-  }
+  }, [token])
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
     const data = await res.json()
     setCategories(data)
-  }
+  }, [])
 
   useEffect(() => {
     fetchProducts()
     fetchCategories()
-  }, [])
+  }, [fetchProducts, fetchCategories])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -219,20 +232,20 @@ export default function AdminProductsPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="pill">Admin</p>
-            <h1 className="headline">Manage products</h1>
+            <h1 className="headline dark:text-white">Manage products</h1>
           </div>
           {message && <p className="text-sm text-red-500">{message}</p>}
         </div>
 
-        <form onSubmit={handleSubmit} className="section grid gap-4 md:grid-cols-2">
+        <form onSubmit={handleSubmit} className="section grid gap-4 md:grid-cols-2 dark:bg-slate-800 dark:border-slate-700">
           <div className="space-y-3">
-            <input value={name} onChange={e => setName(e.target.value)} className="input" placeholder="Product Name" />
-            <textarea value={description} onChange={e => setDescription(e.target.value)} className="input" placeholder="Description" />
-            <input value={price} onChange={e => setPrice(e.target.value)} className="input" placeholder="Price" type="number" step="0.01" />
-            <input value={stock} onChange={e => setStock(e.target.value)} className="input" placeholder="Stock" type="number" />
+            <input value={name} onChange={e => setName(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Product Name" />
+            <textarea value={description} onChange={e => setDescription(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Description" />
+            <input value={price} onChange={e => setPrice(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Price" type="number" step="0.01" />
+            <input value={stock} onChange={e => setStock(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" placeholder="Stock" type="number" />
           </div>
           <div className="space-y-3">
-            <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="input">
+            <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white">
               <option value="">Select Category</option>
               {categories.map(cat => (
                 <option key={cat._id} value={cat._id}>
@@ -240,25 +253,25 @@ export default function AdminProductsPage() {
                 </option>
               ))}
             </select>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
               Active
             </label>
-            <input type="file" multiple accept="image/*" onChange={e => setImageFiles(e.target.files)} className="input" />
+            <input type="file" multiple accept="image/*" onChange={e => setImageFiles(e.target.files)} className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
             <button className="primary-btn sm:w-fit">Create product</button>
           </div>
         </form>
 
         <div className="flex flex-wrap gap-2">
-          <button className="ghost-btn text-sm" onClick={() => handleBulkUpdate(true)} disabled={selectedProducts.length === 0}>Activate selected</button>
-          <button className="ghost-btn text-sm text-red-600" onClick={() => handleBulkUpdate(false)} disabled={selectedProducts.length === 0}>Deactivate selected</button>
+          <button className="ghost-btn text-sm dark:text-gray-400 dark:hover:bg-slate-800" onClick={() => handleBulkUpdate(true)} disabled={selectedProducts.length === 0}>Activate selected</button>
+          <button className="ghost-btn text-sm text-red-600 dark:hover:bg-slate-800" onClick={() => handleBulkUpdate(false)} disabled={selectedProducts.length === 0}>Deactivate selected</button>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
           {products.map(prod => (
-            <div key={prod._id} className="surface border border-gray-200 rounded-lg p-4 space-y-3">
+            <div key={prod._id} className="surface border border-gray-200 rounded-lg p-4 space-y-3 dark:bg-slate-900 dark:border-slate-700">
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <input
                     type="checkbox"
                     checked={selectedProducts.includes(prod._id)}
@@ -266,7 +279,7 @@ export default function AdminProductsPage() {
                   />
                   Select
                 </label>
-                <span className={`pill text-xs ${prod.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                <span className={`pill text-xs ${prod.isActive ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'}`}>
                   {prod.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
@@ -282,13 +295,13 @@ export default function AdminProductsPage() {
                   <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">No image</div>
                 )}
               </div>
-              <h3 className="font-semibold text-gray-900">{prod.name}</h3>
-              <p className="text-lg font-semibold text-gray-900">${prod.price.toFixed(2)}</p>
-              <p className="text-sm text-gray-600">{getCategoryName(prod.category, categories)}</p>
-              <p className="text-sm text-gray-600">Stock: {prod.stock ?? 0}</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white">{prod.name}</h3>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">${prod.price.toFixed(2)}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{getCategoryName(prod.category, categories)}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Stock: {prod.stock ?? 0}</p>
               <div className="flex gap-2">
                 <button
-                  className="ghost-btn text-sm"
+                  className="ghost-btn text-sm dark:text-gray-400 dark:hover:bg-slate-800"
                   onClick={() => {
                     setEditProduct(prod)
                     setEditOpen(true)
@@ -297,7 +310,7 @@ export default function AdminProductsPage() {
                   Edit
                 </button>
                 <button
-                  className="ghost-btn text-sm text-red-600"
+                  className="ghost-btn text-sm text-red-600 dark:hover:bg-slate-800"
                   onClick={() => handleDelete(prod._id)}
                 >
                   Delete

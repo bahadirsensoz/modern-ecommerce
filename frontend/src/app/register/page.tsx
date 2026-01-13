@@ -54,7 +54,7 @@ export default function RegisterPage() {
 
   return (
     <div className="page-shell flex items-center justify-center">
-      <div className="section w-full max-w-md space-y-6">
+      <div className="section w-full max-w-md space-y-6 dark:bg-slate-800 dark:border-slate-700">
         <div className="space-y-2 text-center">
           <p className="pill mx-auto w-fit">Join the club</p>
           <h1 className="headline">Create an account</h1>
@@ -65,7 +65,7 @@ export default function RegisterPage() {
           <input
             {...register('firstName')}
             placeholder="First name"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-gray-400"
           />
           {errors.firstName && (
             <p className="text-sm font-semibold text-rose-200">{errors.firstName.message}</p>
@@ -74,7 +74,7 @@ export default function RegisterPage() {
           <input
             {...register('lastName')}
             placeholder="Last name"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-gray-400"
           />
           {errors.lastName && (
             <p className="text-sm font-semibold text-rose-200">{errors.lastName.message}</p>
@@ -83,7 +83,7 @@ export default function RegisterPage() {
           <input
             {...register('email')}
             placeholder="Email"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-gray-400"
             type="email"
           />
           {errors.email && (
@@ -94,7 +94,7 @@ export default function RegisterPage() {
             {...register('password')}
             placeholder="Password"
             type="password"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-gray-400"
           />
           {errors.password && (
             <p className="text-sm font-semibold text-rose-200">{errors.password.message}</p>

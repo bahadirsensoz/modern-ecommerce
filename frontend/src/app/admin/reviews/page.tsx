@@ -1,7 +1,7 @@
 'use client'
 
 import AdminGuard from '@/components/guards/AdminGuard'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Product } from '@/types'
 import { useAuthStore } from '@/store/authStore'
 import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
@@ -12,7 +12,7 @@ export default function AdminReviewsPage() {
   const [message, setMessage] = useState('')
   const { isAuthenticated, token } = useAuthStore()
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       if (!isAuthenticated || !token) {
         console.error('No authentication token found')
@@ -36,11 +36,11 @@ export default function AdminReviewsPage() {
       console.error('Failed to fetch products:', error)
       setMessage('Failed to fetch pending reviews')
     }
-  }
+  }, [isAuthenticated, token])
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [fetchProducts])
 
   const handleApproveReview = async (productId: string, reviewId: string) => {
     try {
@@ -70,7 +70,7 @@ export default function AdminReviewsPage() {
       } else {
         throw new Error('Failed to approve review')
       }
-    } catch (error) {
+    } catch {
       setMessage('Failed to approve review')
     } finally {
       setLoading(false)
@@ -105,7 +105,7 @@ export default function AdminReviewsPage() {
       } else {
         throw new Error('Failed to reject review')
       }
-    } catch (error) {
+    } catch {
       setMessage('Failed to reject review')
     } finally {
       setLoading(false)

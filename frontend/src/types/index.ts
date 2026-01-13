@@ -19,7 +19,7 @@ export interface Product {
     price: number
     stock: number
     images: string[]
-    category: {
+    category: string | {
         _id: string
         name: string
         description?: string
@@ -64,7 +64,7 @@ export interface User {
     phone?: string
     role: 'customer' | 'admin'
     addresses: Address[]
-    favorites: string[] | Product[]
+    favorites: (string | Product)[]
     emailVerified: boolean
     createdAt: string
     updatedAt: string

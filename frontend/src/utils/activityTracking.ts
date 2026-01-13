@@ -9,7 +9,7 @@ export const trackActivity = async (activityData: {
     metadata?: Record<string, unknown>
 }) => {
     try {
-        const { isAuthenticated, token, user } = useAuthStore.getState()
+        const { isAuthenticated, token } = useAuthStore.getState()
         const { sessionId } = useCartStore.getState()
 
         const headers: Record<string, string> = {

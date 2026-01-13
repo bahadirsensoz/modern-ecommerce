@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import AdminGuard from '@/components/guards/AdminGuard'
 import axios from 'axios'
 import { Order, OrderItem, OrderStatus } from '@/types'
@@ -18,27 +18,27 @@ function OrderDetailModal({ order, open, onClose, onStatusChange }: {
   if (!open || !order) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="section w-full max-w-lg space-y-3">
+      <div className="section w-full max-w-lg space-y-3 dark:bg-slate-800 dark:border-slate-700">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Order #{order._id}</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Order #{order._id}</h2>
           <select
             value={order.status}
             onChange={e => onStatusChange(order._id, e.target.value as OrderStatus)}
-            className="input w-fit"
+            className="input w-fit dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           >
             {orderStatuses.map(status => (
               <option key={status} value={status}>{status}</option>
             ))}
           </select>
         </div>
-        <div className="text-sm text-gray-700 space-y-1">
+        <div className="text-sm text-gray-700 space-y-1 dark:text-gray-300">
           <p>Placed: {new Date(order.createdAt).toLocaleDateString()}</p>
           <p>Customer: {order.shippingAddress.fullName}</p>
           <p>Email: {order.email}</p>
           <p>Shipping: {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.country}</p>
         </div>
-        <div className="border-t pt-2 text-sm text-gray-700 space-y-2">
-          <p className="font-semibold text-gray-900">Items</p>
+        <div className="border-t pt-2 text-sm text-gray-700 space-y-2 dark:border-slate-700 dark:text-gray-300">
+          <p className="font-semibold text-gray-900 dark:text-white">Items</p>
           <div className="max-h-40 overflow-y-auto space-y-2">
             {order.orderItems.map((item: OrderItem) => (
               <div key={item._id} className="flex justify-between text-sm">
@@ -47,15 +47,15 @@ function OrderDetailModal({ order, open, onClose, onStatusChange }: {
               </div>
             ))}
           </div>
-          <div className="space-y-1 pt-2 border-t text-sm">
+          <div className="space-y-1 pt-2 border-t text-sm dark:border-slate-700">
             <div className="flex justify-between"><span>Subtotal:</span><span>${order.subtotal}</span></div>
             <div className="flex justify-between"><span>Tax:</span><span>${order.tax}</span></div>
             <div className="flex justify-between"><span>Shipping:</span><span>${order.shipping}</span></div>
-            <div className="flex justify-between border-t pt-1 font-semibold text-gray-900"><span>Total:</span><span>${order.totalPrice}</span></div>
+            <div className="flex justify-between border-t pt-1 font-semibold text-gray-900 dark:border-slate-700 dark:text-white"><span>Total:</span><span>${order.totalPrice}</span></div>
           </div>
         </div>
         <div className="flex justify-end gap-2">
-          <button className="ghost-btn text-sm" onClick={onClose}>Close</button>
+          <button className="ghost-btn text-sm dark:text-gray-400 dark:hover:bg-slate-700" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
@@ -72,12 +72,14 @@ export default function AdminOrdersPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const { isAuthenticated, token } = useAuthStore()
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true)
       setError('')
       if (!isAuthenticated || !token) {
-        throw new Error('No authentication token found')
+        // Avoid throwing here as it might happen during logout/initial load
+        setLoading(false)
+        return
       }
       logTokenInfo(token, 'AdminOrdersFetch')
       if (!isValidJWT(token)) {
@@ -97,11 +99,11 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [isAuthenticated, token])
 
   useEffect(() => {
     fetchOrders()
-  }, [])
+  }, [fetchOrders])
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
     try {
@@ -155,22 +157,22 @@ export default function AdminOrdersPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="pill">Admin</p>
-            <h1 className="headline">Manage orders</h1>
+            <h1 className="headline dark:text-white">Manage orders</h1>
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
 
-        <div className="section flex flex-wrap gap-3">
+        <div className="section flex flex-wrap gap-3 dark:bg-slate-800 dark:border-slate-700">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by order ID, customer, or email"
-            className="input flex-1 min-w-[200px]"
+            className="input flex-1 min-w-[200px] dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           />
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as OrderStatus)}
-            className="input w-full sm:w-48"
+            className="input w-full sm:w-48 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           >
             <option value="">All statuses</option>
             {orderStatuses.map(status => (
@@ -181,10 +183,10 @@ export default function AdminOrdersPage() {
 
         <div className="space-y-4">
           {filtered.map((order) => (
-            <div key={order._id} className="section space-y-3">
+            <div key={order._id} className="section space-y-3 dark:bg-slate-800 dark:border-slate-700">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1 text-sm text-gray-700">
-                  <h2 className="text-lg font-semibold text-gray-900">Order #{order._id}</h2>
+                <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Order #{order._id}</h2>
                   <p>{new Date(order.createdAt).toLocaleDateString()}</p>
                   <p>Customer: {order.shippingAddress.fullName}</p>
                   <p>Email: {order.email}</p>
@@ -193,7 +195,7 @@ export default function AdminOrdersPage() {
                   <select
                     value={order.status}
                     onChange={e => updateOrderStatus(order._id, e.target.value as OrderStatus)}
-                    className="input w-44"
+                    className="input w-44 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                   >
                     {orderStatuses.map((status) => (
                       <option key={status} value={status}>
@@ -202,21 +204,21 @@ export default function AdminOrdersPage() {
                     ))}
                   </select>
                   <button
-                    className="ghost-btn text-sm"
+                    className="ghost-btn text-sm dark:text-gray-400 dark:hover:bg-slate-700"
                     onClick={() => { setSelectedOrder(order); setModalOpen(true); }}
                   >
                     View details
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 sm:text-sm">
-                <div className="surface rounded-lg p-3">
-                  <p className="font-semibold text-gray-900">Items</p>
+              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 sm:text-sm dark:text-gray-400">
+                <div className="surface rounded-lg p-3 dark:bg-slate-900 dark:border-slate-700">
+                  <p className="font-semibold text-gray-900 dark:text-white">Items</p>
                   <p>{order.orderItems.length}</p>
                 </div>
-                <div className="surface rounded-lg p-3">
-                  <p className="font-semibold text-gray-900">Total</p>
-                  <p className="text-lg font-semibold text-gray-900">${order.totalPrice.toFixed(2)}</p>
+                <div className="surface rounded-lg p-3 dark:bg-slate-900 dark:border-slate-700">
+                  <p className="font-semibold text-gray-900 dark:text-white">Total</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">${order.totalPrice.toFixed(2)}</p>
                 </div>
               </div>
             </div>

@@ -3,11 +3,9 @@
 import { useEffect } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
-import { CartItem } from '@/types'
-
 export default function CartHydration() {
     const { syncCart } = useCartStore()
-    const { isAuthenticated, token } = useAuthStore()
+    const { token } = useAuthStore()
 
     useEffect(() => {
         const wasCleared = localStorage.getItem('cartCleared')

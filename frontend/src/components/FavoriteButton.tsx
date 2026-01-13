@@ -18,7 +18,7 @@ export default function FavoriteButton({ productId, variant = 'card' }: Props) {
     const [isFavorite, setIsFavorite] = useState<boolean>(false)
 
     useEffect(() => {
-        if (isAuthenticated && user?.favorites) {
+        if (isAuthenticated && user?.favorites && Array.isArray(user.favorites)) {
             const favorites = user.favorites as (string | Product)[]
             const isFav = favorites.some(fav =>
                 typeof fav === 'string'
@@ -64,7 +64,14 @@ export default function FavoriteButton({ productId, variant = 'card' }: Props) {
 
             if (!res.ok) throw new Error('Failed to toggle favorite')
 
+            const data = await res.json()
+
+            const updatedFavorites = Array.isArray(data) ? data : (data.favorites || [])
+
+            // Sync with global store
+            useAuthStore.getState().updateFavorites(updatedFavorites)
             setIsFavorite(prev => !prev)
+
         } catch (error) {
             console.error('Failed to toggle favorite:', error)
         }

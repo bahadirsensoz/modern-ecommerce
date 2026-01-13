@@ -351,13 +351,18 @@ export const useCartStore = create<CartStore>()(
 
             updateQuantity: async (productId, quantity, variantKey, token) => {
                 const { sessionId } = get()
-                const updatedItems = get().items.map(item => {
+                // 1. Optimistic Update: Calculate new state immediately
+                const currentItems = get().items
+                const updatedItems = currentItems.map(item => {
                     const key = item.variantKey || buildVariantKey(item)
                     if (item.product._id === productId && (!variantKey || key === variantKey)) {
                         return { ...item, quantity }
                     }
                     return item
                 })
+
+                // Set local state immediately for instant feedback
+                set({ items: updatedItems })
 
                 const itemsForProduct = updatedItems.filter(i => i.product._id === productId)
 
@@ -383,6 +388,7 @@ export const useCartStore = create<CartStore>()(
                 }
 
                 try {
+                    // 2. Perform Server Sync in Background
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/remove`, {
                         method: 'POST',
                         headers: {
@@ -397,9 +403,15 @@ export const useCartStore = create<CartStore>()(
                     if (itemsForProduct.length > 0) {
                         await readdItems()
                     }
-                    set({ items: updatedItems })
+                    // No need to set items again if successful, as we already did hypothetically.
+                    // However, for consistency/safety, we could re-sync or leave it. 
+                    // Let's leave it to avoid "jumping" if server response differs slightly 
+                    // (though here we are just pushing what we have).
+
                 } catch (error) {
                     console.error('Failed to update quantity:', error)
+                    // 3. Revert on Failure
+                    set({ items: currentItems })
                 }
             },
 

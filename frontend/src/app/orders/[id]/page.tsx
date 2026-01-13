@@ -107,7 +107,7 @@ const OrderDetailsPage = () => {
               withCredentials: true
             }
           )
-        } catch (err) {
+        } catch {
           // ignore
         }
       }
