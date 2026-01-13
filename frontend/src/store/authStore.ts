@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User } from '@/types'
+import { User, Product } from '@/types'
 import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 
 interface AuthState {
@@ -11,6 +11,7 @@ interface AuthState {
     logout: () => void
     checkAuth: () => Promise<void>
     initialize: () => Promise<void>
+    updateFavorites: (favorites: (string | Product)[]) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -75,6 +76,13 @@ export const useAuthStore = create<AuthState>()(
                 const { token } = get()
                 if (token) {
                     await get().checkAuth()
+                }
+            },
+
+            updateFavorites: (favorites) => {
+                const { user } = get()
+                if (user) {
+                    set({ user: { ...user, favorites: favorites as (string | Product)[] } })
                 }
             }
         }),

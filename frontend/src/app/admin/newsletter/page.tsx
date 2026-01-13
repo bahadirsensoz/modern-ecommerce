@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import axios from 'axios'
 
@@ -26,16 +26,7 @@ export default function NewsletterAdminPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!isAuthenticated || !token) {
-      setError('Authentication required')
-      setLoading(false)
-      return
-    }
-    fetchData()
-  }, [isAuthenticated, token])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       const [subscribersRes, statsRes] = await Promise.all([
@@ -58,7 +49,16 @@ export default function NewsletterAdminPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    if (!isAuthenticated || !token) {
+      setError('Authentication required')
+      setLoading(false)
+      return
+    }
+    fetchData()
+  }, [isAuthenticated, token, fetchData])
 
   if (loading) {
     return <div className="page-shell text-sm text-gray-600">Loading...</div>

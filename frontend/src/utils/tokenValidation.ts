@@ -12,7 +12,7 @@ export function isValidJWT(token: string): boolean {
             atob(paddedPart.replace(/-/g, '+').replace(/_/g, '/'))
         })
         return true
-    } catch (error) {
+    } catch {
         return false
     }
 }

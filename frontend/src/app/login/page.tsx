@@ -40,7 +40,7 @@ export default function LoginPage() {
       } else {
         setMessage(data.message || 'Login failed')
       }
-    } catch (error) {
+    } catch {
       setMessage('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -49,7 +49,7 @@ export default function LoginPage() {
 
   return (
     <div className="page-shell flex items-center justify-center">
-      <div className="section w-full max-w-md space-y-6">
+      <div className="section w-full max-w-md space-y-6 dark:bg-slate-800 dark:border-slate-700">
         <div className="space-y-2 text-center">
           <p className="pill mx-auto w-fit">Welcome back</p>
           <h1 className="headline">Login to your account</h1>
@@ -60,18 +60,12 @@ export default function LoginPage() {
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            type="email"
-            className="input"
-            required
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-gray-400"
           />
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            type="password"
-            className="input"
-            required
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-gray-400"
           />
 
           <button

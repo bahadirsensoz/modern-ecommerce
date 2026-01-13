@@ -18,7 +18,7 @@ const OrderStatusTracker = ({ status }: Props) => {
                     >
                         {index + 1}
                     </div>
-                    <p className={`mt-1 text-sm ${index <= currentIndex ? 'text-green-600' : 'text-gray-500'}`}>
+                    <p className={`mt-1 text-sm ${index <= currentIndex ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                         {step}
                     </p>
                 </div>

@@ -9,7 +9,6 @@ import { logTokenInfo, isValidJWT } from '@/utils/tokenValidation'
 export default function EditProfilePage() {
   const router = useRouter()
   const { isAuthenticated, token } = useAuthStore()
-  const [user, setUser] = useState<User | null>(null)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
@@ -38,7 +37,6 @@ export default function EditProfilePage() {
     })
       .then(res => res.json())
       .then(data => {
-        setUser(data)
         setFirstName(data.firstName || '')
         setLastName(data.lastName || '')
         setPhone(data.phone || '')
@@ -89,23 +87,23 @@ export default function EditProfilePage() {
 
   return (
     <div className="page-shell max-w-2xl space-y-6">
-      <button onClick={() => router.push('/dashboard')} className="ghost-btn">
+      <button onClick={() => router.push('/dashboard')} className="ghost-btn dark:text-gray-300 dark:hover:bg-slate-800">
         Back to dashboard
       </button>
 
-      <div className="section space-y-4">
+      <div className="section space-y-4 dark:bg-slate-800 dark:border-slate-700">
         <div className="space-y-1">
           <p className="pill">Account</p>
-          <h1 className="headline">Edit profile</h1>
+          <h1 className="headline dark:text-white">Edit profile</h1>
         </div>
 
         {success && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-300">
             {success}
           </div>
         )}
         {message && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-300">
             {message}
           </div>
         )}
@@ -115,19 +113,19 @@ export default function EditProfilePage() {
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
             placeholder="First name"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           />
           <input
             value={lastName}
             onChange={e => setLastName(e.target.value)}
             placeholder="Last name"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           />
           <input
             value={phone}
             onChange={e => setPhone(e.target.value)}
             placeholder="Phone"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           />
           <button
             type="submit"

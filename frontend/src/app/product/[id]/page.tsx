@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import FavoriteButton from '@/components/FavoriteButton'
+import StarRatingInput from '@/components/StarRatingInput'
 import RelatedProducts from '@/components/RelatedProducts'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
@@ -26,7 +27,7 @@ export default function ProductDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`)
       const data = await res.json()
@@ -35,9 +36,9 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error('Failed to fetch product:', error)
     }
-  }
+  }, [id])
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     if (!isAuthenticated || !token) return
     logTokenInfo(token, 'ProductDetail')
     if (!isValidJWT(token)) {
@@ -58,9 +59,9 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error('Failed to fetch user:', error)
     }
-  }
+  }, [isAuthenticated, token])
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
       const data = await res.json()
@@ -68,13 +69,13 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error('Failed to fetch categories:', error)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchProduct()
     fetchUser()
     fetchCategories()
-  }, [id])
+  }, [fetchProduct, fetchUser, fetchCategories])
 
   useEffect(() => {
     if (!product || !userId) return
@@ -248,7 +249,7 @@ export default function ProductDetailPage() {
 
   if (!product) return <div className="page-shell text-lg text-gray-700">Loading...</div>
 
-  const categoryLabel = categories.length ? getCategoryName(product.category, categories) : product.category?.name
+  const categoryLabel = getCategoryName(product.category, categories)
 
   return (
     <div className="page-shell max-w-6xl space-y-10">
@@ -306,14 +307,14 @@ export default function ProductDetailPage() {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               <p className="pill w-fit">{categoryLabel || 'Product'}</p>
-              <h1 className="text-3xl font-semibold text-gray-900">{product.name}</h1>
-              <p className="text-gray-700">{product.description}</p>
+              <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">{product.name}</h1>
+              <p className="text-gray-700 dark:text-gray-300">{product.description}</p>
             </div>
             <FavoriteButton productId={product._id} variant="detail" />
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <p className="rounded-2xl bg-gray-100 px-4 py-2 text-2xl font-semibold text-gray-900">
+            <p className="rounded-2xl bg-gray-100 px-4 py-2 text-2xl font-semibold text-gray-900 dark:bg-slate-800 dark:text-white">
               ${product.price}
             </p>
             {averageRating && (
@@ -326,15 +327,24 @@ export default function ProductDetailPage() {
             <div className="space-y-3">
               {variantKeys.map((key) => (
                 <div className="space-y-2" key={key}>
-                  <p className="text-sm font-semibold text-gray-800 capitalize">{key}</p>
+                  <p className="text-sm font-semibold text-gray-800 capitalize dark:text-gray-200">{key}</p>
                   <div className="flex flex-wrap gap-2">
                     {getVariantValues(key).map((val) => (
                       <button
                         key={val}
-                        onClick={() => setSelectedVariant((prev) => ({ ...prev, [key]: val }))}
+                        onClick={() => setSelectedVariant((prev) => {
+                          const isSelected = prev[key] === val
+                          const newVariants = { ...prev }
+                          if (isSelected) {
+                            delete newVariants[key]
+                          } else {
+                            newVariants[key] = val
+                          }
+                          return newVariants
+                        })}
                         className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${selectedVariant[key] === val
-                          ? 'border-orange-400 bg-orange-50 text-orange-800'
-                          : 'border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50'
+                          ? 'border-orange-400 bg-orange-50 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                          : 'border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800'
                           }`}
                       >
                         {val}
@@ -360,7 +370,7 @@ export default function ProductDetailPage() {
 
       <div className="section space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="headline">Customer reviews</h2>
+          <h2 className="headline dark:text-white">Customer reviews</h2>
           {product.reviews.some((r: Review) => (typeof r.user === 'string' ? r.user : r.user._id) === userId && !r.isApproved) && (
             <span className="pill bg-amber-50 text-amber-700">
               Your review is pending approval
@@ -372,7 +382,7 @@ export default function ProductDetailPage() {
           {product.reviews
             .filter((review: Review) => review.isApproved)
             .map((review: Review, idx: number) => (
-              <div key={idx} className="surface rounded-2xl p-4">
+              <div key={idx} className="surface rounded-2xl p-4 dark:bg-slate-800 dark:border-slate-700">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-amber-500">
                     <span className="text-base">★</span>
@@ -381,11 +391,11 @@ export default function ProductDetailPage() {
                       {new Date(review.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
                     {review.user?.firstName} {review.user?.lastName?.charAt(0)}.
                   </p>
                 </div>
-                <p className="mt-3 text-gray-800">{review.comment}</p>
+                <p className="mt-3 text-gray-800 dark:text-gray-200">{review.comment}</p>
 
                 {userId === review.user._id && (
                   <div className="mt-3 flex gap-2">
@@ -407,42 +417,37 @@ export default function ProductDetailPage() {
             ))}
 
           {product.reviews.filter((r: Review) => r.isApproved).length === 0 && (
-            <div className="surface rounded-2xl p-4 text-center text-gray-700">
+            <div className="surface rounded-2xl p-4 text-center text-gray-700 dark:text-gray-400 dark:bg-slate-800 dark:border-slate-700">
               No reviews yet. Be the first to review this product.
             </div>
           )}
         </div>
 
-        <div id="review-form" className="surface rounded-2xl p-6">
-          <h3 className="text-xl font-semibold text-gray-900">
+        <div id="review-form" className="surface rounded-2xl p-6 dark:bg-slate-800 dark:border-slate-700">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             {isEditing ? 'Edit your review' : 'Write a review'}
           </h3>
           <form onSubmit={handleReviewSubmit} className="mt-4 space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-800">Rating</label>
-              <select
-                value={rating}
-                onChange={(e) => setRating(Number(e.target.value))}
-                className="input"
-              >
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>{`${n} star${n > 1 ? 's' : ''}`}</option>
-                ))}
-              </select>
+              <label className="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">Rating</label>
+              <StarRatingInput
+                rating={rating}
+                onChange={setRating}
+              />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-800">Comment</label>
+              <label className="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">Comment</label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                className="input min-h-[120px]"
+                className="input min-h-[120px] dark:bg-slate-900 dark:border-slate-700 dark:text-gray-200"
                 required
               />
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-3">
               <button
                 type="submit"
-                className="primary-btn justify-center"
+                className="primary-btn w-fit"
               >
                 {isEditing ? 'Update review' : 'Submit review'}
               </button>
@@ -454,7 +459,7 @@ export default function ProductDetailPage() {
                     setComment('')
                     setRating(5)
                   }}
-                  className="ghost-btn justify-center"
+                  className="ghost-btn"
                 >
                   Cancel edit
                 </button>

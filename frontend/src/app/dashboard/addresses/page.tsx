@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AddOrEditAddressModal from '@/components/AddOrEditAddressModal'
 import { Address } from '@/types'
@@ -14,7 +14,7 @@ export default function AddressesPage() {
   const [selected, setSelected] = useState<(Address & { index?: number }) | null>(null)
   const [showModal, setShowModal] = useState(false)
 
-  const fetchAddresses = async () => {
+  const fetchAddresses = useCallback(async () => {
     try {
       if (!isAuthenticated || !token) return
 
@@ -34,11 +34,11 @@ export default function AddressesPage() {
     } catch (error) {
       console.error('Error fetching addresses:', error)
     }
-  }
+  }, [isAuthenticated, token])
 
   useEffect(() => {
     fetchAddresses()
-  }, [])
+  }, [fetchAddresses])
 
   const saveAddresses = async (newAddresses: Address[]) => {
     try {
@@ -105,15 +105,11 @@ export default function AddressesPage() {
 
   const handleSave = async (newData: { label: string; street: string; city: string; country: string; postalCode: string; isDefault?: boolean }) => {
     const updated = [...addresses]
-    const dataWithDefault = {
-      ...newData,
-      isDefault: newData.isDefault ?? false
-    }
-
     if (selected && typeof selected.index === 'number') {
       updated[selected.index] = {
         ...updated[selected.index],
-        ...newData
+        ...newData,
+        isDefault: newData.isDefault ?? false
       }
     } else {
       if (newData.isDefault) {
@@ -130,15 +126,15 @@ export default function AddressesPage() {
 
   return (
     <div className="page-shell max-w-4xl space-y-6">
-      <button onClick={() => router.push('/dashboard')} className="ghost-btn">
+      <button onClick={() => router.push('/dashboard')} className="ghost-btn dark:text-gray-300 dark:hover:bg-slate-800">
         Back to dashboard
       </button>
 
-      <div className="section space-y-4">
+      <div className="section space-y-4 dark:bg-slate-800 dark:border-slate-700">
         <div className="flex items-center justify-between">
           <div>
             <p className="pill">Account</p>
-            <h1 className="headline">My addresses</h1>
+            <h1 className="headline dark:text-white">My addresses</h1>
           </div>
           <button
             className="primary-btn text-sm"
@@ -155,12 +151,12 @@ export default function AddressesPage() {
           {addresses.map((address, index) => (
             <div
               key={index}
-              className="surface border border-gray-200 rounded-lg p-4"
+              className="surface border border-gray-200 rounded-lg p-4 dark:bg-slate-900 dark:border-slate-700"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="space-y-2 text-sm text-gray-700">
+                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   <div className="flex items-center gap-2">
-                    <p className="text-lg font-semibold text-gray-900">
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
                       {address.label || 'Address'}
                     </p>
                     {address.isDefault && (
@@ -174,20 +170,20 @@ export default function AddressesPage() {
 
                 <div className="flex flex-wrap gap-2">
                   <button
-                    className="ghost-btn text-sm"
+                    className="ghost-btn text-sm dark:text-gray-400 dark:hover:bg-slate-800 dark:hover:text-gray-200"
                     onClick={() => handleEdit(index)}
                   >
                     Edit
                   </button>
                   <button
-                    className="ghost-btn text-sm text-red-600"
+                    className="ghost-btn text-sm text-red-600 dark:text-rose-400 dark:hover:bg-slate-800"
                     onClick={() => handleDelete(index)}
                   >
                     Delete
                   </button>
                   {!address.isDefault && (
                     <button
-                      className="ghost-btn text-sm"
+                      className="ghost-btn text-sm dark:text-gray-400 dark:hover:bg-slate-800 dark:hover:text-gray-200"
                       onClick={() => handleMakeDefault(index)}
                     >
                       Make default
@@ -199,7 +195,7 @@ export default function AddressesPage() {
           ))}
 
           {addresses.length === 0 && (
-            <div className="surface rounded-2xl p-6 text-center text-gray-700">
+            <div className="surface rounded-2xl p-6 text-center text-gray-700 dark:bg-slate-900 dark:text-gray-400 dark:border-slate-700">
               No addresses saved yet.
             </div>
           )}

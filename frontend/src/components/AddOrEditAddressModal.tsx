@@ -66,30 +66,30 @@ export default function AddOrEditAddressModal({
 
   return (
     <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-      <div className="bg-gray-400 w-full max-w-lg p-6 rounded shadow-md">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-lg p-6 rounded shadow-md">
         <h2 className="text-xl font-bold mb-4">
           {initialData ? 'Edit Address' : 'Add Address'}
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <input {...register('label')} placeholder="Label (e.g. Home, Work)" className="input w-full" />
+            <input {...register('label')} placeholder="Label (e.g. Home, Work)" className="input w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
             {errors.label && <p className="text-sm text-red-500">{errors.label.message}</p>}
           </div>
           <div>
-            <input {...register('street')} placeholder="Street" className="input w-full" />
+            <input {...register('street')} placeholder="Street" className="input w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
             {errors.street && <p className="text-sm text-red-500">{errors.street.message}</p>}
           </div>
           <div>
-            <input {...register('city')} placeholder="City" className="input w-full" />
+            <input {...register('city')} placeholder="City" className="input w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
             {errors.city && <p className="text-sm text-red-500">{errors.city.message}</p>}
           </div>
           <div>
-            <input {...register('country')} placeholder="Country" className="input w-full" />
+            <input {...register('country')} placeholder="Country" className="input w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
             {errors.country && <p className="text-sm text-red-500">{errors.country.message}</p>}
           </div>
           <div>
-            <input {...register('postalCode')} placeholder="Postal Code" className="input w-full" />
+            <input {...register('postalCode')} placeholder="Postal Code" className="input w-full dark:bg-slate-900 dark:border-slate-700 dark:text-white" />
             {errors.postalCode && <p className="text-sm text-red-500">{errors.postalCode.message}</p>}
           </div>
           <div className="flex items-center gap-2">

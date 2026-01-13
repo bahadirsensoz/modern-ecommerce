@@ -81,23 +81,23 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="page-shell max-w-2xl space-y-6">
-      <button onClick={() => router.push('/dashboard')} className="ghost-btn">
+      <button onClick={() => router.push('/dashboard')} className="ghost-btn dark:text-gray-300 dark:hover:bg-slate-800">
         Back to dashboard
       </button>
 
-      <div className="section space-y-4">
+      <div className="section space-y-4 dark:bg-slate-800 dark:border-slate-700">
         <div className="space-y-1">
           <p className="pill">Account</p>
-          <h1 className="headline">Change password</h1>
+          <h1 className="headline dark:text-white">Change password</h1>
         </div>
 
         {success && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-300">
             {success}
           </div>
         )}
         {message && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-300">
             {message}
           </div>
         )}
@@ -108,7 +108,7 @@ export default function ChangePasswordPage() {
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             placeholder="Current password"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white"
             required
           />
           <input
@@ -116,7 +116,7 @@ export default function ChangePasswordPage() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="New password"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white"
             required
           />
           <input
@@ -124,7 +124,7 @@ export default function ChangePasswordPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm new password"
-            className="input"
+            className="input dark:bg-slate-900 dark:border-slate-700 dark:text-white"
             required
           />
           <button
